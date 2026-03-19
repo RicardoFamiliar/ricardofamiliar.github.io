@@ -205,6 +205,26 @@ body {
 .btn-ghost-dark { border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.65); }
 .btn-ghost-dark:hover { border-color:var(--blue); color:var(--blue); transform:translateY(-2px); }
 
+/* HERO PHOTO */
+.hero-photo-wrap {
+  margin-bottom: .8rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 1px rgba(0,200,240,.15);
+  line-height: 0;
+}
+.hero-photo {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+  max-height: 280px;
+  filter: brightness(.95) contrast(1.02);
+  transition: filter .3s;
+}
+.hero-photo-wrap:hover .hero-photo { filter: brightness(1.05) contrast(1.02); }
+
 /* HERO RIGHT — metrics + contact */
 .hero-right { opacity:0; animation:lft .7s .45s forwards; }
 
@@ -577,6 +597,10 @@ body {
       <!-- RIGHT -->
       <div class="hero-right">
 
+        <div class="hero-photo-wrap">
+          <img src="foto_Perfil.jpg" alt="Ricardo Familiar" class="hero-photo" />
+        </div>
+
         <div class="contact-card">
           <div class="contact-hd">
             <div class="macos-dots">
@@ -837,7 +861,7 @@ body {
 <a href="https://github.com/ricardofamiliar/MQTT-Broker" target="_blank" class="proj-link">github.com/ricardofamiliar/MQTT-Broker ↗</a>
       </div>
 
-      <div class="proj-card" onclick="window.open('https://github.com/RicardoFamiliar/LIbft_42Porto','_blank')">
+      <div class="proj-card" onclick="window.open('https://github.com/ricardofamiliar/Libft42','_blank')">
         <div class="proj-arrow">↗</div>
         <div class="proj-num">P-005</div>
         <div class="proj-title">Libft42 / 42 Porto Piscine</div>
