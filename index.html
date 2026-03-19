@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricardo Familiar — Software Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #F5F7FA;
+  --bg2:     #ECEEF3;
+  --white:   #ffffff;
+  --line:    #E0E4ED;
+  --line2:   #CDD2E0;
+  --text:    #0C0E12;
+  --text2:   #38404F;
+  --text3:   #6B7899;
+  --blue:    #00C8F0;       /* cyan accent — same family as screenshot */
+  --blue2:   #0091B8;
+  --blue-lt: rgba(0,200,240,0.08);
+  --blue-md: rgba(0,200,240,0.22);
+  --green:   #00B07A;
+  --green-lt:rgba(0,176,122,0.09);
+  --hero-bg: #0D1014;       /* dark slab just for hero block */
+  --shadow:  0 1px 4px rgba(12,14,18,0.07), 0 4px 18px rgba(12,14,18,0.05);
+  --shadow-lg:0 8px 36px rgba(12,14,18,0.12);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 300;
+  cursor: none;
+  overflow-x: hidden;
+}
+
+/* ─── CURSOR ─── */
+#cur  { position:fixed; width:7px; height:7px; background:var(--blue); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .15s,height .15s; }
+#cur-r{ position:fixed; width:30px; height:30px; border:1.5px solid var(--blue); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); opacity:.35; }
+
+/* ─── DOT GRID (light sections) ─── */
+.dot-bg::before {
+  content:''; position:absolute; inset:0;
+  background-image: radial-gradient(circle, #BCC4D8 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: .5;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ─── LAYOUT ─── */
+.wrap { max-width:1100px; margin:0 auto; padding:0 2rem; position:relative; z-index:1; }
+
+/* ══════════════════════════════════
+   STICKY NAV
+══════════════════════════════════ */
+.navbar {
+  position: sticky; top:0; z-index:200;
+  background: rgba(245,247,250,0.90);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.navbar .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.nav-logo {
+  display:flex; align-items:center; gap:.55rem;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.78rem; font-weight:500; color:var(--text);
+}
+.nav-dot { width:8px; height:8px; border-radius:50%; background:var(--blue); flex-shrink:0; }
+.nav-links { display:flex; gap:2rem; }
+.nav-a {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.68rem; color:var(--text3);
+  text-decoration:none; letter-spacing:.04em;
+  transition:color .2s; cursor:none;
+}
+.nav-a:hover { color:var(--blue); }
+
+/* ══════════════════════════════════
+   HERO — dark slab
+══════════════════════════════════ */
+.hero-slab {
+  background: var(--hero-bg);
+  position:relative;
+  overflow:hidden;
+}
+
+/* grid lines */
+.hero-slab::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(0,200,240,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,240,.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events:none;
+}
+/* subtle glow top-right */
+.hero-slab::after {
+  content:'';
+  position:absolute;
+  top:-200px; right:-200px;
+  width:700px; height:700px;
+  background: radial-gradient(circle, rgba(0,200,240,.12) 0%, transparent 65%);
+  pointer-events:none;
+}
+
+.hero-inner {
+  padding: 4.5rem 0 5rem;
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:3rem;
+  align-items:start;
+  position:relative; z-index:1;
+}
+
+/* EYEBROW */
+.hero-eyebrow {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.72rem;
+  color:var(--blue);
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  margin-bottom:1.5rem;
+  display:flex; align-items:center; gap:.7rem;
+  opacity:0; animation:up .5s .1s forwards;
+}
+.hero-eyebrow::before {
+  content:'//';
+  opacity:.5;
+}
+
+/* THE BIG NAME */
+.hero-name {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;
+  font-size: clamp(4.2rem, 9.8vw, 8rem);
+  line-height:.88;
+  letter-spacing:-.01em;
+  text-transform:uppercase;
+
+  /* gradient: near-white → cyan, matching screenshot */
+  background: linear-gradient(
+    170deg,
+    #E8F8FF 0%,
+    #B8EEFA 25%,
+    #00C8F0 65%,
+    #0091B8 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  opacity:0; animation:up .7s .22s forwards;
+}
+
+/* ROLE LINE */
+.hero-role {
+  margin-top:1.4rem;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.82rem;
+  color:rgba(255,255,255,.45);
+  font-weight:300;
+  opacity:0; animation:up .6s .4s forwards;
+}
+.hero-role em { color:var(--blue); font-style:normal; }
+
+/* BIO */
+.hero-bio {
+  margin-top:1.6rem;
+  font-size:.92rem;
+  line-height:1.85;
+  color:rgba(255,255,255,.55);
+  font-weight:300;
+  max-width:480px;
+  opacity:0; animation:up .6s .54s forwards;
+}
+.hero-bio strong { color:rgba(255,255,255,.9); font-weight:600; }
+
+.hero-btns {
+  display:flex; gap:.9rem; margin-top:2.2rem;
+  opacity:0; animation:up .6s .68s forwards;
+}
+.btn {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.68rem; letter-spacing:.06em;
+  text-decoration:none; padding:.72rem 1.5rem;
+  border-radius:5px; transition:all .2s;
+  cursor:none; font-weight:500;
+}
+.btn-cyan  { background:var(--blue); color:var(--hero-bg); }
+.btn-cyan:hover  { background:#33d6f5; box-shadow:0 4px 24px rgba(0,200,240,.4); transform:translateY(-2px); }
+.btn-ghost-dark { border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.65); }
+.btn-ghost-dark:hover { border-color:var(--blue); color:var(--blue); transform:translateY(-2px); }
+
+/* HERO RIGHT — metrics + contact */
+.hero-right { opacity:0; animation:lft .7s .45s forwards; }
+
+.metric-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  padding:1.1rem 1.4rem;
+  margin-bottom:.8rem;
+  display:flex; align-items:center; gap:1.1rem;
+  transition:background .2s, transform .2s;
+  cursor:default;
+}
+.metric-card:hover { background:rgba(0,200,240,.07); transform:translateX(4px); }
+.m-icon {
+  width:38px; height:38px;
+  border-radius:8px;
+  background:rgba(0,200,240,.12);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1rem; flex-shrink:0;
+}
+.m-icon.gr { background:rgba(0,176,122,.12); }
+.m-val {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:1.15rem; font-weight:600;
+  color:#fff; line-height:1;
+}
+.m-val small { color:var(--blue); font-size:.65rem; font-weight:400; }
+.m-lbl { font-size:.68rem; color:rgba(255,255,255,.4); margin-top:.2rem; }
+
+.contact-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:.8rem;
+}
+.contact-hd {
+  background:rgba(255,255,255,.06);
+  padding:.65rem 1.2rem;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.58rem;
+  color:rgba(255,255,255,.3);
+  letter-spacing:.1em;
+  display:flex; align-items:center; gap:.8rem;
+}
+.macos-dots { display:flex; gap:5px; }
+.macos-dots span { width:9px; height:9px; border-radius:50%; display:block; }
+.contact-row {
+  display:grid; grid-template-columns:80px 1fr;
+  padding:.65rem 1.2rem;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  align-items:center;
+  transition:background .15s;
+}
+.contact-row:last-child { border-bottom:none; }
+.contact-row:hover { background:rgba(0,200,240,.06); }
+.c-key { font-family:'IBM Plex Mono',monospace; font-size:.58rem; color:rgba(255,255,255,.3); letter-spacing:.04em; }
+.c-val { font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:rgba(255,255,255,.65); }
+.c-val a { color:inherit; text-decoration:none; cursor:none; transition:color .15s; }
+.c-val a:hover { color:var(--blue); }
+
+/* ══════════════════════════════════
+   LIGHT BODY (below hero)
+══════════════════════════════════ */
+.body-wrap { background:var(--bg); position:relative; }
+
+/* ─── SECTION ─── */
+.section { padding:5rem 0; }
+.section + .section { border-top:1px solid var(--line); }
+
+.sec-hd {
+  display:flex; align-items:center; gap:1rem;
+  margin-bottom:2.8rem;
+}
+.sec-prefix {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.58rem; color:var(--blue);
+  background:var(--blue-lt); border:1px solid var(--blue-md);
+  padding:.2rem .65rem; border-radius:4px; letter-spacing:.1em;
+  white-space:nowrap;
+}
+.sec-title {
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:1.6rem; font-weight:700;
+  color:var(--text); letter-spacing:-.02em;
+}
+.sec-line { flex:1; height:1px; background:var(--line); }
+
+/* ─── EXPERIENCE ─── */
+.exp-list { display:flex; flex-direction:column; gap:1rem; }
+
+.exp-card {
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  opacity:0; transform:translateY(14px);
+  transition:opacity .5s, transform .5s, box-shadow .25s;
+  cursor:default;
+}
+.exp-card.visible { opacity:1; transform:translateY(0); }
+.exp-card:hover   { box-shadow:var(--shadow-lg); }
+
+.exp-hdr {
+  display:flex; align-items:center; gap:.8rem;
+  padding:1.1rem 1.5rem;
+  border-bottom:1px solid var(--line);
+  flex-wrap:wrap;
+}
+.exp-co { font-weight:700; font-size:.98rem; color:var(--text); letter-spacing:-.01em; }
+.exp-period { font-family:'IBM Plex Mono',monospace; font-size:.6rem; color:var(--text3); }
+.exp-role-tag { font-family:'IBM Plex Mono',monospace; font-size:.62rem; color:var(--blue); margin-left:auto; font-style:italic; }
+
+.badge {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.57rem; padding:.2rem .55rem;
+  border-radius:4px; letter-spacing:.05em; font-weight:500;
+}
+.bd-blue  { background:var(--blue-lt);  color:var(--blue2);  border:1px solid var(--blue-md); }
+.bd-green { background:var(--green-lt); color:var(--green);  border:1px solid rgba(0,176,122,.2); }
+.bd-gray  { background:var(--bg2);      color:var(--text3);  border:1px solid var(--line); }
+
+.exp-body { padding:1.3rem 1.5rem; }
+.exp-body ul { padding-left:1.1rem; }
+.exp-body li,
+.exp-body p  { font-size:.87rem; line-height:1.82; color:var(--text2); font-weight:300; margin-bottom:.35rem; }
+.exp-body li::marker { color:var(--blue); }
+.exp-body strong { color:var(--text); font-weight:600; }
+
+.impact-row { display:flex; gap:.8rem; margin:1rem 0; flex-wrap:wrap; }
+.impact-chip {
+  display:flex; align-items:center; gap:.55rem;
+  background:var(--blue-lt); border:1px solid var(--blue-md);
+  border-radius:6px; padding:.5rem 1rem;
+}
+.impact-chip.gr { background:var(--green-lt); border-color:rgba(0,176,122,.22); }
+.i-num { font-family:'IBM Plex Mono',monospace; font-size:.88rem; font-weight:600; color:var(--blue2); }
+.impact-chip.gr .i-num { color:var(--green); }
+.i-lbl { font-size:.7rem; color:var(--text2); line-height:1.3; }
+
+.tag-row { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--line); }
+.tag {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.59rem; padding:.2rem .6rem;
+  background:var(--bg); border:1px solid var(--line);
+  color:var(--text3); border-radius:4px;
+  transition:all .15s; cursor:default;
+}
+.tag:hover { background:var(--blue-lt); border-color:var(--blue-md); color:var(--blue2); }
+
+/* ─── SKILLS ─── */
+.skills-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:.8rem; }
+.skill-card {
+  background:var(--white); border:1px solid var(--line);
+  border-radius:8px; padding:1.1rem 1.3rem;
+  box-shadow:var(--shadow);
+  transition:transform .2s, box-shadow .2s, border-color .2s;
+  cursor:default;
+}
+.skill-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); border-color:var(--blue-md); }
+.skill-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem; }
+.skill-nm  { font-size:.82rem; font-weight:600; color:var(--text); }
+.skill-dots { display:flex; gap:4px; align-items:center; }
+.skill-dot {
+  width:9px; height:9px; border-radius:50%;
+  background:var(--bg2); border:1px solid var(--line2);
+  transition:background .3s, border-color .3s, transform .2s;
+  flex-shrink:0;
+}
+.skill-dot.on { background: linear-gradient(135deg, var(--blue2), var(--blue)); border-color:var(--blue); }
+.skill-card:hover .skill-dot.on { transform:scale(1.2); }
+.skill-sub { font-size:.67rem; color:var(--text3); margin-top:.5rem; font-family:'IBM Plex Mono',monospace; }
+
+/* ─── DB HIGHLIGHT CARD ─── */
+.db-card {
+  margin-top: 1.5rem;
+  background: var(--white);
+  border: 1px solid var(--blue-md);
+  border-left: 4px solid var(--blue);
+  border-radius: 10px;
+  padding: 1.6rem 1.8rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  gap: 1.4rem;
+  align-items: flex-start;
+  transition: box-shadow .25s, transform .2s;
+}
+.db-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.db-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: .1rem;
+  background: var(--blue-lt);
+  border: 1px solid var(--blue-md);
+  border-radius: 10px;
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+}
+.db-title {
+  font-size: .98rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.01em;
+  margin-bottom: .65rem;
+}
+.db-desc {
+  font-size: .86rem;
+  line-height: 1.82;
+  color: var(--text2);
+  font-weight: 300;
+}
+.db-content { flex: 1; }
+
+.tools-label { font-size:.68rem; color:var(--text3); font-family:'IBM Plex Mono',monospace; margin:2rem 0 .85rem; letter-spacing:.08em; }
+.tools-grid { display:flex; flex-wrap:wrap; gap:.55rem; }
+.tool-chip {
+  display:flex; align-items:center; gap:.4rem;
+  background:var(--white); border:1px solid var(--line);
+  border-radius:6px; padding:.42rem .9rem;
+  font-size:.74rem; color:var(--text2); font-weight:500;
+  box-shadow:var(--shadow); transition:all .2s; cursor:default;
+}
+.tool-chip:hover { border-color:var(--blue-md); color:var(--blue2); background:var(--blue-lt); transform:translateY(-1px); }
+
+/* ─── EDUCATION ─── */
+.edu-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; }
+.edu-card {
+  background:var(--white); border:1px solid var(--line);
+  border-radius:10px; padding:1.6rem;
+  box-shadow:var(--shadow); position:relative; overflow:hidden;
+  transition:all .25s; cursor:default;
+  opacity:0; transform:translateY(14px);
+}
+.edu-card.visible { opacity:1; transform:translateY(0); }
+.edu-card::after {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, var(--blue2), var(--blue));
+  transform:scaleX(0); transform-origin:left;
+  transition:transform .4s cubic-bezier(.16,1,.3,1);
+}
+.edu-card:hover::after { transform:scaleX(1); }
+.edu-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-3px) !important; }
+.edu-yr     { font-family:'IBM Plex Mono',monospace; font-size:.6rem; color:var(--blue); letter-spacing:.1em; margin-bottom:.5rem; }
+.edu-school { font-size:.92rem; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:.35rem; }
+.edu-deg    { font-size:.76rem; color:var(--text3); font-family:'IBM Plex Mono',monospace; font-style:italic; }
+
+/* ─── PROJECTS ─── */
+.proj-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.proj-card {
+  background:var(--white); border:1px solid var(--line);
+  border-radius:10px; padding:1.6rem 1.8rem;
+  box-shadow:var(--shadow); position:relative; overflow:hidden;
+  transition:all .25s; cursor:default;
+  opacity:0; transform:translateY(14px);
+}
+.proj-card.visible { opacity:1; transform:translateY(0); }
+.proj-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-3px) !important; border-color:var(--blue-md); }
+.proj-card::after {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, var(--blue2), var(--blue));
+  transform:scaleX(0); transform-origin:left;
+  transition:transform .4s cubic-bezier(.16,1,.3,1);
+}
+.proj-card:hover::after { transform:scaleX(1); }
+.proj-num   { font-family:'IBM Plex Mono',monospace; font-size:.58rem; color:var(--text3); letter-spacing:.1em; margin-bottom:.55rem; }
+.proj-title { font-size:.98rem; font-weight:700; color:var(--text); margin-bottom:.7rem; letter-spacing:-.01em; }
+.proj-desc  { font-size:.81rem; line-height:1.78; color:var(--text3); font-weight:300; }
+.proj-arrow {
+  position:absolute; top:1.3rem; right:1.3rem;
+  width:26px; height:26px; border-radius:6px;
+  background:var(--blue-lt);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.75rem; color:var(--blue);
+  opacity:0; transform:translate(4px,-4px);
+  transition:opacity .25s, transform .25s;
+}
+.proj-card:hover .proj-arrow { opacity:1; transform:translate(0,0); }
+
+/* ─── FOOTER ─── */
+.footer {
+  border-top:1px solid var(--line);
+  padding:2.5rem 0;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:1rem;
+}
+.footer-left { display:flex; align-items:center; gap:.7rem; }
+.footer-name { font-weight:700; font-size:.95rem; letter-spacing:-.01em; }
+.footer-slash { color:var(--line2); }
+.footer-role { font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--text3); }
+.footer-note { font-family:'IBM Plex Mono',monospace; font-size:.6rem; color:var(--text3); }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--blue); border-radius:2px; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes up  { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes lft { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:translateX(0)} }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width:820px) {
+  .hero-inner { grid-template-columns:1fr; gap:2.5rem; }
+  .hero-right { order:-1; }
+  .edu-grid   { grid-template-columns:1fr; }
+  .proj-grid  { grid-template-columns:1fr; }
+}
+
+.proj-link {
+  display:inline-block; margin-top:.9rem;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.62rem; color:var(--blue);
+  text-decoration:none; letter-spacing:.04em;
+  transition:color .15s, gap .15s;
+  cursor:none;
+}
+.proj-link:hover { color:var(--blue2); text-decoration:underline; }
+.proj-card { cursor:none; }
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-r"></div>
+
+<!-- ══════════════════════════════════
+     NAV
+══════════════════════════════════ -->
+<div class="navbar">
+  <div class="wrap">
+    <div class="nav-logo"><span class="nav-dot"></span>Ricardo Familiar</div>
+    <div class="nav-links">
+      <a href="mailto:ricardofamiliar@hotmail.com" class="nav-a">email</a>
+      <a href="https://github.com/ricardofamiliar" target="_blank" class="nav-a">github</a>
+      <a href="https://linkedin.com/in/ricardofamiliar" target="_blank" class="nav-a">linkedin</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     HERO — DARK SLAB
+══════════════════════════════════ -->
+<div class="hero-slab">
+  <div class="wrap">
+    <div class="hero-inner">
+
+      <!-- LEFT -->
+      <div>
+        <div class="hero-eyebrow">Software Developer — Porto, PT</div>
+
+        <h1 class="hero-name">Ricardo<br>Familiar</h1>
+
+        <p class="hero-role">// <em>Software Solutions Engineer</em> · Domino Printing Sciences · Python · JS · SQL</p>
+
+        <p class="hero-bio">
+          IT professional with <strong>5+ years</strong> of experience building software that works in the real world — from automating weeks of manual work at scale to shipping industrial solutions that touch the products people use every day.
+        </p>
+
+        <div class="hero-btns">
+          <a href="mailto:ricardofamiliar@hotmail.com" class="btn btn-cyan">→ Get in touch</a>
+          <a href="https://github.com/ricardofamiliar" target="_blank" class="btn btn-ghost-dark">GitHub ↗</a>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="hero-right">
+
+        <div class="contact-card">
+          <div class="contact-hd">
+            <div class="macos-dots">
+              <span style="background:#FF5F57"></span>
+              <span style="background:#FFBC2E"></span>
+              <span style="background:#28C840"></span>
+            </div>
+            contacts.json
+          </div>
+          <div class="contact-row"><span class="c-key">location</span><span class="c-val">Porto, PT</span></div>
+          <div class="contact-row"><span class="c-key">phone</span><span class="c-val"><a href="tel:+351914825147">+351 914 825 147</a></span></div>
+          <div class="contact-row"><span class="c-key">email</span><span class="c-val"><a href="mailto:ricardofamiliar@hotmail.com">ricardofamiliar@hotmail.com</a></span></div>
+          <div class="contact-row"><span class="c-key">github</span><span class="c-val"><a href="https://github.com/ricardofamiliar" target="_blank">ricardofamiliar</a></span></div>
+          <div class="contact-row"><span class="c-key">linkedin</span><span class="c-val"><a href="https://linkedin.com/in/ricardofamiliar" target="_blank">in/ricardofamiliar</a></span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     BODY — LIGHT
+══════════════════════════════════ -->
+<div class="body-wrap dot-bg">
+<div class="wrap">
+
+  <!-- EXPERIENCE -->
+  <section class="section">
+    <div class="sec-hd">
+      <span class="sec-prefix">01 / exp</span>
+      <h2 class="sec-title">Work Experience</h2>
+      <div class="sec-line"></div>
+    </div>
+
+    <div class="exp-list">
+
+      <div class="exp-card">
+        <div class="exp-hdr">
+          <span class="exp-co">Domino Printing Sciences</span>
+          <span class="badge bd-blue">Full-Time</span>
+          <span class="badge bd-green">Current</span>
+          <span class="exp-period">2024 — Present</span>
+          <span class="exp-role-tag">Software Solutions Engineer</span>
+        </div>
+        <div class="exp-body">
+          <ul>
+            <li>Designing and delivering <strong>industrial software solutions</strong> for clients across Portugal and Spain — bridging client ERP systems with <strong>Domino's marking &amp; coding printers</strong> to automate product traceability on production lines.</li>
+            <li>Built integration software using <strong>Python, JavaScript and Kalipso</strong> (low-code industrial platform) to connect factory systems to the printers that label the products people use every day.</li>
+            <li>Developed an internal <strong>licensing integration project</strong> connecting Chargebee with PHC, streamlining subscription management and billing automation.</li>
+            <li>Delivered multiple external client projects end-to-end — from requirements gathering and development through to on-site deployment and ongoing technical support.</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">Python</span><span class="tag">JavaScript</span><span class="tag">Kalipso</span>
+            <span class="tag">ERP Integration</span><span class="tag">Chargebee</span><span class="tag">PHC</span>
+            <span class="tag">Industrial IoT</span><span class="tag">Client Support</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-hdr">
+          <span class="exp-co">NOS, SGPS</span>
+          <span class="badge bd-blue">Full-Time</span>
+          <span class="badge bd-green">2 Yrs</span>
+          <span class="exp-period">2022 — 2024</span>
+          <span class="exp-role-tag">Full Stack Developer</span>
+        </div>
+        <div class="exp-body">
+          <ul>
+            <li>Solo-built the <strong>IFRS 16 norm automation</strong> using Python (Pandas, pyodbc) + SQL Server ETL — delivered in 9 months.</li>
+            <li>Automated litigation client payment plans; ensured accurate balance sheet entries and automated client reminders — 1 year to deliver.</li>
+            <li>Deployed both systems inside an internal portal built with <strong>Angular.JS, Node.js &amp; TypeScript</strong>.</li>
+          </ul>
+          <div class="impact-row">
+            <div class="impact-chip"><span class="i-num">1 wk → 2 hrs</span><div><div class="i-lbl">IFRS 16 monthly</div><div class="i-lbl">processing time</div></div></div>
+            <div class="impact-chip gr"><span class="i-num">1.5 wks → 2 hrs</span><div><div class="i-lbl">Litigation payment</div><div class="i-lbl">plan automation</div></div></div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">pyodbc</span>
+            <span class="tag">MS SQL Server</span><span class="tag">ETL</span><span class="tag">Node.js</span>
+            <span class="tag">AngularJS</span><span class="tag">TypeScript</span><span class="tag">Azure</span>
+            <span class="tag">Git</span><span class="tag">Agile</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-hdr">
+          <span class="exp-co">Yazaki</span>
+          <span class="badge bd-blue">Full-Time</span>
+          <span class="badge bd-gray">1 Yr</span>
+          <span class="exp-period">2016 — 2017</span>
+          <span class="exp-role-tag">Database Manager</span>
+        </div>
+        <div class="exp-body">
+          <p>Full database migration — implementing, transforming and updating the company system from Microsoft Access to <strong>SAP SCM</strong>, maintaining full data integrity throughout.</p>
+          <div class="tag-row">
+            <span class="tag">SQL</span><span class="tag">Microsoft Access</span><span class="tag">SAP SCM</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-hdr">
+          <span class="exp-co">Ocean Formula Turbo</span>
+          <span class="badge bd-gray">Internship</span>
+          <span class="exp-period">2015 · 9 months</span>
+          <span class="exp-role-tag">Web Developer</span>
+        </div>
+        <div class="exp-body">
+          <p>Built the company website from scratch (HTML, CSS, AngularJS). Enhanced databases and automated processes with SQL Server stored procedures.</p>
+          <div class="tag-row">
+            <span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">AngularJS</span><span class="tag">SQL Server</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-hdr">
+          <span class="exp-co">Engitop</span>
+          <span class="badge bd-gray">School Internship</span>
+          <span class="exp-period">2014 · 3 months</span>
+          <span class="exp-role-tag">Software Developer</span>
+        </div>
+        <div class="exp-body">
+          <p>Independently built a debut internal management system — client data, meeting scheduling and data export — with focus on user-friendly interface design.</p>
+          <div class="tag-row">
+            <span class="tag">C++</span><span class="tag">SQL</span><span class="tag">Microsoft Access</span><span class="tag">VBA</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DATABASE HIGHLIGHT CARD -->
+    <div class="db-card">
+      <div class="db-icon">🗄</div>
+      <div class="db-content">
+        <div class="db-title">Database Architecture &amp; Engineering</div>
+        <p class="db-desc">Database design, building and support has been a constant thread throughout my entire career — from the first internship migrating Microsoft Access to SAP SCM, through years of SQL Server ETL pipelines at NOS, to architecting industrial data integrations at Domino. I'm deeply comfortable designing schemas from scratch, optimising queries, structuring ETL flows and owning database systems end-to-end in production.</p>
+        <div class="tag-row" style="border-top:none; padding-top:.8rem;">
+          <span class="tag">MS SQL Server</span><span class="tag">Schema Design</span><span class="tag">ETL</span><span class="tag">Stored Procedures</span><span class="tag">SAP SCM</span><span class="tag">MongoDB</span><span class="tag">Microsoft Access</span><span class="tag">Azure Data Studio</span><span class="tag">SSMS</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+  <section class="section">
+    <div class="sec-hd">
+      <span class="sec-prefix">02 / skills</span>
+      <h2 class="sec-title">Technical Skills</h2>
+      <div class="sec-line"></div>
+    </div>
+
+    <div class="skills-grid">
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">Python / Pandas / pyodbc</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Expert · Data automation &amp; ETL</div></div>
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">SQL / MS SQL Server</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Expert · Queries, stored procs, ETL</div></div>
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">JavaScript / TypeScript</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Advanced · Frontend &amp; backend</div></div>
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">Node.js / AngularJS</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Advanced · Internal portals</div></div>
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">C / C++</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Intermediate · Systems &amp; 42 School</div></div>
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">React</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Intermediate · Currently learning</div></div>
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">Azure / DevOps / Git</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Intermediate · CI/CD &amp; cloud</div></div>
+      <div class="skill-card"><div class="skill-top"><span class="skill-nm">MongoDB / VBA</span><span class="skill-dots"><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot on"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span><span class="skill-dot"></span></span></div><div class="skill-sub">Working knowledge</div></div>
+    </div>
+
+    <div class="tools-label">// tools &amp; software</div>
+    <div class="tools-grid">
+      <div class="tool-chip">🗄 SSMS</div>
+      <div class="tool-chip">☁️ Azure Data Studio</div>
+      <div class="tool-chip">💻 Visual Studio / VS Code</div>
+      <div class="tool-chip">🐍 PyCharm</div>
+      <div class="tool-chip">☕ IntelliJ IDEA</div>
+      <div class="tool-chip">🔧 Git</div>
+      <div class="tool-chip">⌨️ Vim</div>
+      <div class="tool-chip">📊 Microsoft Office / VBA</div>
+      <div class="tool-chip">🏭 Kalipso</div>
+      <div class="tool-chip">📈 Power BI</div>
+      <div class="tool-chip">🎨 QuickDesign</div>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section class="section">
+    <div class="sec-hd">
+      <span class="sec-prefix">03 / edu</span>
+      <h2 class="sec-title">Education</h2>
+      <div class="sec-line"></div>
+    </div>
+    <div class="edu-grid">
+      <div class="edu-card">
+        <div class="edu-yr">2011 — 2014</div>
+        <div class="edu-school">Escola S/3 Arquitecto Oliveira Ferreira</div>
+        <div class="edu-deg">Professional Diploma · Computer Management Technician</div>
+      </div>
+      <div class="edu-card">
+        <div class="edu-yr">2016 — 2024</div>
+        <div class="edu-school">ISCAP</div>
+        <div class="edu-deg">Marketing Degree</div>
+      </div>
+      <div class="edu-card">
+        <div class="edu-yr">2024 — ongoing</div>
+        <div class="edu-school">CS50X — Harvard University</div>
+        <div class="edu-deg">Computer Science · Online</div>
+      </div>
+      <div class="edu-card">
+        <div class="edu-yr">2024 · 3 months</div>
+        <div class="edu-school">42 Porto</div>
+        <div class="edu-deg">Piscine · Intensive C &amp; Systems Programming Bootcamp</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="section">
+    <div class="sec-hd">
+      <span class="sec-prefix">04 / projects</span>
+      <h2 class="sec-title">Projects</h2>
+      <div class="sec-line"></div>
+    </div>
+    <div class="proj-grid">
+
+      <div class="proj-card">
+        <div class="proj-arrow">↗</div>
+        <div class="proj-num">P-001</div>
+        <div class="proj-title">E-Commerce Website</div>
+        <div class="proj-desc">React online store for vintage market vendors — my parents' business. Real front-end work with real users, plus a React learning ground.</div>
+        <div class="tag-row" style="border-top:none;padding-top:.5rem;"><span class="tag">React</span><span class="tag">JavaScript</span><span class="tag">CSS</span></div>
+        
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-arrow">↗</div>
+        <div class="proj-num">P-002</div>
+        <div class="proj-title">GAIURB · Chess Professor</div>
+        <div class="proj-desc">Teaching chess to underprivileged children via the "Entertain with Knowledge" social project since September 2023. Critical thinking through play.</div>
+        <div class="tag-row" style="border-top:none;padding-top:.5rem;"><span class="tag">Social Impact</span><span class="tag">Since Sep 2023</span></div>
+
+      </div>
+
+      <div class="proj-card" onclick="window.open('https://github.com/ricardofamiliar/Cargo_Division','_blank')">
+        <div class="proj-arrow">↗</div>
+        <div class="proj-num">P-003</div>
+        <div class="proj-title">Cargo_Division</div>
+        <div class="proj-desc">Open source project on GitHub. See the full repository for technical details and implementation.</div>
+        <div class="tag-row" style="border-top:none;padding-top:.5rem;"><span class="tag">GitHub</span></div>
+
+<a href="https://github.com/ricardofamiliar/Cargo_Division" target="_blank" class="proj-link">github.com/ricardofamiliar/Cargo_Division ↗</a>
+      </div>
+
+      <div class="proj-card" onclick="window.open('https://github.com/ricardofamiliar/MQTT-Broker','_blank')">
+        <div class="proj-arrow">↗</div>
+        <div class="proj-num">P-004</div>
+        <div class="proj-title">MQTT-Broker</div>
+        <div class="proj-desc">IoT-focused messaging broker — built for reliable, low-latency pub/sub message delivery.</div>
+        <div class="tag-row" style="border-top:none;padding-top:.5rem;"><span class="tag">IoT</span><span class="tag">Networking</span><span class="tag">GitHub</span></div>
+
+<a href="https://github.com/ricardofamiliar/MQTT-Broker" target="_blank" class="proj-link">github.com/ricardofamiliar/MQTT-Broker ↗</a>
+      </div>
+
+      <div class="proj-card" onclick="window.open('https://github.com/RicardoFamiliar/LIbft_42Porto','_blank')">
+        <div class="proj-arrow">↗</div>
+        <div class="proj-num">P-005</div>
+        <div class="proj-title">Libft42 / 42 Porto Piscine</div>
+        <div class="proj-desc">C standard library reconstruction + the intensive 42 School selection bootcamp. Deep systems fundamentals built from scratch.</div>
+        <div class="tag-row" style="border-top:none;padding-top:.5rem;"><span class="tag">C</span><span class="tag">42 School</span><span class="tag">Systems</span></div>
+
+<a href="https://github.com/ricardofamiliar/Libft42" target="_blank" class="proj-link">github.com/ricardofamiliar/Libft42 ↗</a>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-arrow">↗</div>
+        <div class="proj-num">P-006</div>
+        <div class="proj-title">Live Portfolio Tracker</div>
+        <div class="proj-desc">Real-time crypto &amp; stock portfolio dashboard built in HTML &amp; JavaScript. Prices refresh every second via live market APIs, with persistent storage via localStorage or JSONBin cloud sync — so your portfolio follows you across devices.</div>
+        <div class="tag-row" style="border-top:none;padding-top:.5rem;"><span class="tag">HTML</span><span class="tag">JavaScript</span><span class="tag">Live APIs</span><span class="tag">JSONBin</span><span class="tag">localStorage</span></div>
+        
+      </div>
+
+    </div>
+  </section>
+  <footer class="footer">
+    <div class="footer-left">
+      <span class="footer-name">Ricardo Familiar</span>
+      <span class="footer-slash">/</span>
+      <span class="footer-role">software developer</span>
+    </div>
+    <div class="footer-note">ricardofamiliar@hotmail.com · Porto, PT · 2025</div>
+  </footer>
+
+</div><!-- /wrap -->
+</div><!-- /body-wrap -->
+
+<script>
+  const cur = document.getElementById('cur');
+  const r   = document.getElementById('cur-r');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{ mx=e.clientX; my=e.clientY; cur.style.left=mx+'px'; cur.style.top=my+'px'; });
+  (function tick(){ rx+=(mx-rx)*.1; ry+=(my-ry)*.1; r.style.left=rx+'px'; r.style.top=ry+'px'; requestAnimationFrame(tick); })();
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // animate skill bars
+        e.target.querySelectorAll && e.target.querySelectorAll('.skill-fill').forEach(f => f.classList.add('go'));
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.exp-card, .edu-card, .proj-card, .skill-card').forEach(el => io.observe(el));
+
+  // skill bars via separate observer
+  document.querySelectorAll('.skill-fill').forEach(el => {
+    const ob = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('go'); ob.unobserve(e.target); } });
+    }, { threshold: 0.2 });
+    ob.observe(el);
+  });
+</script>
+</body>
+</html>
