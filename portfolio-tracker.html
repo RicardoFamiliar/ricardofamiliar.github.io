@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Portfolio Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #f0f2f7;
+  --panel:   #ffffff;
+  --panel2:  #f7f9fc;
+  --border:  #e2e6ef;
+  --border2: #c8cfe0;
+  --text:    #1a1f35;
+  --muted:   #9aa0b8;
+  --muted2:  #6b7494;
+  --accent:  #3a6bff;
+  --green:   #00a854;
+  --red:     #e53935;
+  --yellow:  #f59e0b;
+  --cyan:    #0891b2;
+  --orange:  #ea7800;
+  --purple:  #7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);}
+body{
+  color:var(--text);
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  padding:1rem 1.2rem 3rem;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 0% 0%,  rgba(58,107,255,.05) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 100%,rgba(234,120,0,.04) 0%,transparent 60%);
+}
+
+/* ── HEADER ── */
+.hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;flex-wrap:wrap;gap:.6rem;}
+.hd-left h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2rem,5vw,3.2rem);
+  letter-spacing:.06em;
+  color:#1a1f35;
+  line-height:1;
+  text-shadow:none;
+}
+.hd-left .tagline{
+  font-size:.5rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--muted2);margin-top:.3rem;
+}
+.hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;}
+.clock{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;letter-spacing:.08em;
+  color:var(--muted);line-height:1;
+}
+.clock em{color:var(--text);font-style:normal;}
+.ws-row{display:flex;align-items:center;gap:.4rem;font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.dot.live{background:var(--green);animation:pulse 2s ease-in-out infinite;}
+.dot.warn{background:var(--yellow);animation:blink .8s infinite;}
+.dot.err {background:var(--red);animation:blink .4s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,230,118,.5)}50%{box-shadow:0 0 0 5px rgba(0,230,118,0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+
+/* ── KPI STRIP ── */
+.kpi-strip{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:.5rem;
+  margin-bottom:.8rem;
+}
+.kpi{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:.9rem 1rem;
+  position:relative;overflow:hidden;
+}
+.kpi::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:.25;
+}
+.kpi-l{font-size:.46rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin-bottom:.35rem;}
+.kpi-v{font-family:'Bebas Neue',sans-serif;font-size:1.55rem;letter-spacing:.03em;line-height:1;color:var(--text);}
+.kpi-v.green {color:var(--green);}
+.kpi-v.red   {color:var(--red);}
+.kpi-v.cyan  {color:var(--cyan);}
+.kpi-v.yellow{color:var(--yellow);}
+.kpi-v.orange{color:var(--orange);}
+.kpi-s{font-size:.47rem;color:var(--muted2);margin-top:.3rem;}
+
+/* ── CHART ── */
+.chart-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem;
+  position:relative;overflow:hidden;
+}
+.chart-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 50% 60% at 50% 100%,rgba(79,127,255,.04),transparent);
+  pointer-events:none;
+}
+.chart-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;}
+.chart-label{font-size:.46rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted2);}
+.chart-range{font-size:.46rem;color:var(--muted2);}
+canvas#chart{display:block;width:100%;height:220px;}
+
+/* ── HOLDINGS TABLE ── */
+.section-label{
+  font-size:.46rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted2);margin-bottom:.5rem;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.holdings{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;}
+.row{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:.75rem 1rem;
+  display:grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 72px;
+  gap:.6rem;align-items:center;
+  transition:border-color .15s,background .15s;
+  animation:fadeIn .25s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.row:hover{border-color:var(--border2);background:var(--panel2);}
+.row.editing{border-color:var(--accent);background:var(--panel2);}
+.row.crypto-row .r-name{color:var(--cyan);}
+.row.stock-row  .r-name{color:var(--green);}
+
+.r-info .r-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.05em;line-height:1;}
+.r-info .r-meta{font-size:.46rem;color:var(--muted2);margin-top:.2rem;display:flex;gap:.5rem;align-items:center;}
+.badge{
+  font-size:.42rem;font-weight:700;letter-spacing:.04em;padding:1px 5px;
+  border-radius:3px;text-transform:uppercase;
+}
+.badge.crypto{background:rgba(8,145,178,.08);color:var(--cyan);border:1px solid rgba(8,145,178,.2);}
+.badge.stock {background:rgba(0,168,84,.07);color:var(--green);border:1px solid rgba(0,168,84,.15);}
+.badge.ws    {background:rgba(58,107,255,.08);color:var(--accent);border:1px solid rgba(58,107,255,.2);}
+.badge.poll  {background:rgba(245,158,11,.08);color:var(--yellow);border:1px solid rgba(245,158,11,.2);}
+
+.col{display:flex;flex-direction:column;}
+.col-l{font-size:.42rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.22rem;}
+.col-v{font-size:.9rem;color:var(--text);}
+.col-v.flash-up  {animation:fup .3s ease;}
+.col-v.flash-dn  {animation:fdn .3s ease;}
+@keyframes fup{0%{color:var(--green)}100%{color:var(--text)}}
+@keyframes fdn{0%{color:var(--red)}100%{color:var(--text)}}
+
+.bar-col{display:flex;flex-direction:column;gap:.3rem;}
+.bar-pct{font-size:.48rem;color:var(--muted2);text-align:right;}
+.bar-track{height:2px;background:var(--border);border-radius:1px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:1px;transition:width .5s ease;}
+
+.actions{display:flex;gap:.3rem;justify-content:flex-end;}
+.btn-ico{
+  background:none;border:1px solid var(--border2);color:var(--muted2);
+  border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.btn-ico:hover{border-color:var(--accent);color:var(--accent);}
+.btn-ico.del:hover{border-color:var(--red);color:var(--red);}
+
+/* editing inline */
+.edit-wrap{grid-column:1/-1;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;}
+.edit-wrap input{
+  background:#f7f9fc;border:1px solid var(--border2);color:var(--text);
+  border-radius:5px;padding:.35rem .6rem;font-family:'Space Mono',monospace;font-size:.75rem;
+  outline:none;flex:1;min-width:100px;transition:border-color .12s;
+}
+.edit-wrap input:focus{border-color:var(--accent);}
+.btn-save{background:rgba(0,168,84,.08);border:1px solid rgba(0,168,84,.25);color:var(--green);border-radius:5px;padding:.35rem .8rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:.65rem;transition:all .12s;}
+.btn-save:hover{background:rgba(0,168,84,.15);}
+.btn-cancel{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:5px;padding:.35rem .7rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:.65rem;transition:all .12s;}
+.btn-cancel:hover{border-color:var(--red);color:var(--red);}
+
+/* ── DIST BAR ── */
+.dist-wrap{margin-bottom:.8rem;}
+.dist-bar{display:flex;height:5px;border-radius:3px;overflow:hidden;gap:2px;}
+.dist-seg{height:100%;border-radius:2px;transition:width .6s ease;}
+.dist-legend{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin-top:.5rem;}
+.dl-item{display:flex;align-items:center;gap:.3rem;font-size:.47rem;color:var(--muted2);}
+.dl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* ── ADD FORM ── */
+.add-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;}
+.form-grid{display:grid;grid-template-columns:110px 1fr 1fr 110px;gap:.5rem;margin-bottom:.6rem;}
+.fld label{display:block;font-size:.43rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.2rem;}
+.fld input,.fld select{
+  width:100%;background:#f7f9fc;border:1px solid var(--border2);
+  color:var(--text);border-radius:6px;padding:.4rem .65rem;
+  font-family:'Space Mono',monospace;font-size:.72rem;outline:none;transition:border-color .12s;
+}
+.fld input:focus,.fld select:focus{border-color:var(--accent);}
+.fld select option{background:#fff;color:var(--text);}
+.form-actions{display:flex;justify-content:flex-end;gap:.6rem;align-items:center;}
+.btn-add{
+  background:rgba(79,127,255,.1);border:1px solid rgba(79,127,255,.25);
+  color:var(--accent);border-radius:7px;padding:.5rem 1.4rem;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.08em;
+  transition:all .12s;
+}
+.btn-add:hover{background:rgba(79,127,255,.2);}
+.msg{font-size:.55rem;padding:.3rem .7rem;border-radius:5px;display:none;}
+.msg.show{display:inline-block;}
+.msg.ok {background:rgba(0,230,118,.07);color:var(--green);border:1px solid rgba(0,230,118,.15);}
+.msg.err{background:rgba(255,23,68,.07);color:var(--red);border:1px solid rgba(255,23,68,.15);}
+
+/* ── STATUS BAR ── */
+.status{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(240,242,247,.95);
+  border-top:1px solid var(--border);
+  padding:.4rem 1.2rem;
+  font-size:.5rem;color:var(--muted2);
+  display:flex;justify-content:space-between;
+  backdrop-filter:blur(6px);
+  z-index:100;
+}
+.status span{color:var(--accent);}
+.status .ts{color:var(--muted);}
+
+/* empty state */
+.empty{text-align:center;padding:3rem 0;color:var(--muted);}
+.empty .ei{font-size:2rem;margin-bottom:.6rem;}
+.empty p{font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;}
+
+@media(max-width:820px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr);}
+  .row{grid-template-columns:1fr 90px 50px;}
+  .col.price-col,.bar-col{display:none;}
+  .form-grid{grid-template-columns:1fr 1fr;}
+  .holdings-grid{grid-template-columns:1fr !important;}
+  body{padding:.6rem .7rem 3rem;}
+  .hd-left h1{font-size:2.2rem;}
+  .clock{font-size:1.4rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- FIRST RUN MODAL -->
+<div id="firstRunModal" style="display:none;position:fixed;inset:0;background:rgba(10,12,20,.85);z-index:10000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);">
+  <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.2);">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--text);letter-spacing:.04em;margin-bottom:.2rem;">Portfolio Tracker</div>
+    <div style="font-size:.5rem;color:var(--muted2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.6rem;">Choose how to store your data</div>
+    <div style="display:flex;flex-direction:column;gap:.7rem;margin-bottom:1.4rem;">
+      <button onclick="chooseMode('local')" style="background:rgba(0,168,84,.05);border:1.5px solid rgba(0,168,84,.25);color:var(--text);border-radius:10px;padding:.9rem 1.1rem;cursor:pointer;text-align:left;transition:all .15s;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='rgba(0,168,84,.25)'">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--green);letter-spacing:.04em;margin-bottom:.2rem;">&#128274; Local Only</div>
+        <div style="font-size:.48rem;color:var(--muted2);line-height:1.5;">Saved on this device only. No account needed. Works offline. Perfect for a dedicated app.</div>
+      </button>
+      <button onclick="chooseMode('cloud')" style="background:rgba(58,107,255,.05);border:1.5px solid rgba(58,107,255,.2);color:var(--text);border-radius:10px;padding:.9rem 1.1rem;cursor:pointer;text-align:left;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(58,107,255,.2)'">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent);letter-spacing:.04em;margin-bottom:.2rem;">&#9729; Cloud Sync</div>
+        <div style="font-size:.48rem;color:var(--muted2);line-height:1.5;">Sync across devices via JSONBin. Free account required. Set up your API key in the next step.</div>
+      </button>
+    </div>
+    <div style="font-size:.44rem;color:var(--muted);text-align:center;">You can change this anytime in Settings</div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="keyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.15);">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--text);margin-bottom:.25rem;">☁ Cloud Sync</div>
+    <div style="font-size:.5rem;color:var(--muted2);letter-spacing:.1em;margin-bottom:1.2rem;">Your own free JSONBin account — data is private to you.</div>
+
+    <!-- API Key -->
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;font-size:.43rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:.3rem;">JSONBin Master Key</label>
+      <input id="keyInput" type="password" placeholder="$2a$10$..." style="width:100%;background:#f7f9fc;border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:.5rem .75rem;font-family:'Space Mono',monospace;font-size:.7rem;outline:none;">
+    </div>
+
+    <!-- Bin ID (only for Load) -->
+    <div id="binRow" style="margin-bottom:1.2rem;display:none;">
+      <label style="display:block;font-size:.43rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:.3rem;">Bin ID</label>
+      <input id="binInput" placeholder="e.g. 6659abc123..." style="width:100%;background:#f7f9fc;border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:.5rem .75rem;font-family:'Space Mono',monospace;font-size:.7rem;outline:none;">
+    </div>
+
+    <!-- Current Bin ID display -->
+    <div id="currentBinRow" style="margin-bottom:1rem;display:none;">
+      <div style="font-size:.43rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:.2rem;">Current Bin ID</div>
+      <div id="currentBinId" style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--accent);word-break:break-all;"></div>
+    </div>
+
+    <!-- 3 action buttons -->
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;">
+      <button onclick="modalAction('create')" style="background:rgba(0,168,84,.06);border:1px solid rgba(0,168,84,.2);color:var(--green);border-radius:7px;padding:.6rem;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em;text-align:left;padding-left:1rem;">
+        ＋ Create New Bin &nbsp;<span style="font-size:.5rem;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:0">— first time setup, saves your current assets</span>
+      </button>
+      <button onclick="modalAction('load')" style="background:rgba(58,107,255,.06);border:1px solid rgba(58,107,255,.2);color:var(--accent);border-radius:7px;padding:.6rem;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em;text-align:left;padding-left:1rem;">
+        ↓ Load from Bin &nbsp;<span style="font-size:.5rem;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:0">— restore assets from existing bin</span>
+      </button>
+      <button onclick="modalAction('push')" style="background:rgba(234,120,0,.06);border:1px solid rgba(234,120,0,.18);color:var(--orange);border-radius:7px;padding:.6rem;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em;text-align:left;padding-left:1rem;">
+        ↑ Push to Bin &nbsp;<span style="font-size:.5rem;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:0">— overwrite bin with current local assets</span>
+      </button>
+    </div>
+
+    </div><!-- /cloudConfig -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;">
+      <button onclick="resetSetup()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Space Mono',monospace;font-size:.48rem;text-decoration:underline;" title="Re-show the first-run setup screen">↺ reset setup</button>
+      <button onclick="closeKeyModal()" style="background:none;border:1px solid var(--border2);color:var(--muted2);border-radius:7px;padding:.4rem 1rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:.6rem;">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- HELP MODAL -->
+<div id="helpModal" style="display:none;position:fixed;inset:0;background:rgba(10,12,20,.85);z-index:10001;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);">
+  <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.4rem;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--text);letter-spacing:.04em;line-height:1;">How to use</div>
+        <div style="font-size:.48rem;color:var(--muted2);letter-spacing:.12em;text-transform:uppercase;margin-top:.2rem;">Portfolio Tracker · Quick Guide</div>
+      </div>
+      <button onclick="closeHelp()" style="background:none;border:1px solid var(--border2);color:var(--muted2);border-radius:8px;padding:.3rem .7rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:.65rem;flex-shrink:0;margin-left:1rem;">✕ Close</button>
+    </div>
+
+    <!-- Adding positions -->
+    <div style="margin-bottom:1.4rem;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent);letter-spacing:.06em;margin-bottom:.6rem;">➕ Adding a position</div>
+      <div style="font-size:.6rem;color:var(--muted2);line-height:1.8;">Use the <strong style="color:var(--text)">ADD POSITION</strong> form at the bottom. Pick a type, enter the symbol, an optional label, and the quantity you hold.</div>
+    </div>
+
+    <!-- Crypto -->
+    <div style="background:rgba(8,145,178,.04);border:1px solid rgba(8,145,178,.15);border-radius:10px;padding:1rem;margin-bottom:.8rem;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--cyan);letter-spacing:.06em;margin-bottom:.6rem;">₿ Crypto — Binance symbols</div>
+      <div style="font-size:.58rem;color:var(--muted2);margin-bottom:.7rem;line-height:1.7;">Use the Binance ticker without the USDT suffix. Prices update in real-time via WebSocket.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--cyan);font-weight:700;">BTC</span> <span style="color:var(--muted2);">— Bitcoin</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--cyan);font-weight:700;">ETH</span> <span style="color:var(--muted2);">— Ethereum</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--cyan);font-weight:700;">SOL</span> <span style="color:var(--muted2);">— Solana</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--cyan);font-weight:700;">BNB</span> <span style="color:var(--muted2);">— BNB</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--cyan);font-weight:700;">XRP</span> <span style="color:var(--muted2);">— Ripple</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--cyan);font-weight:700;">DOGE</span> <span style="color:var(--muted2);">— Dogecoin</span></div>
+      </div>
+    </div>
+
+    <!-- Stocks US -->
+    <div style="background:rgba(0,168,84,.04);border:1px solid rgba(0,168,84,.15);border-radius:10px;padding:1rem;margin-bottom:.8rem;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--green);letter-spacing:.06em;margin-bottom:.6rem;">📈 US Stocks — Yahoo Finance ticker</div>
+      <div style="font-size:.58rem;color:var(--muted2);margin-bottom:.7rem;line-height:1.7;">Just use the plain ticker. Prices update every 15 seconds via Yahoo Finance.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--green);font-weight:700;">AAPL</span> <span style="color:var(--muted2);">— Apple</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--green);font-weight:700;">NVDA</span> <span style="color:var(--muted2);">— NVIDIA</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--green);font-weight:700;">MSFT</span> <span style="color:var(--muted2);">— Microsoft</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--green);font-weight:700;">TSLA</span> <span style="color:var(--muted2);">— Tesla</span></div>
+      </div>
+    </div>
+
+    <!-- European ETFs -->
+    <div style="background:rgba(234,120,0,.04);border:1px solid rgba(234,120,0,.15);border-radius:10px;padding:1rem;margin-bottom:.8rem;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--orange);letter-spacing:.06em;margin-bottom:.6rem;">🇪🇺 European Stocks & ETFs — add exchange suffix</div>
+      <div style="font-size:.58rem;color:var(--muted2);margin-bottom:.7rem;line-height:1.7;">European stocks need a suffix to identify the exchange. Find the exact ticker on <strong style="color:var(--text)">finance.yahoo.com</strong> and copy it exactly.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--orange);font-weight:700;">VWCE.DE</span> <span style="color:var(--muted2);">— Xetra</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--orange);font-weight:700;">EDP.LS</span> <span style="color:var(--muted2);">— Lisbon</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--orange);font-weight:700;">SAN.MC</span> <span style="color:var(--muted2);">— Madrid</span></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Space Mono',monospace;font-size:.58rem;"><span style="color:var(--orange);font-weight:700;">ENI.MI</span> <span style="color:var(--muted2);">— Milan</span></div>
+      </div>
+      <div style="margin-top:.6rem;font-size:.52rem;color:var(--muted2);line-height:1.6;">Common suffixes: <span style="color:var(--text);">.DE</span> Xetra · <span style="color:var(--text);">.LS</span> Lisbon · <span style="color:var(--text);">.MC</span> Madrid · <span style="color:var(--text);">.AS</span> Amsterdam · <span style="color:var(--text);">.PA</span> Paris · <span style="color:var(--text);">.MI</span> Milan · <span style="color:var(--text);">.L</span> London</div>
+    </div>
+
+    <!-- ISINs -->
+    <div style="background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:1rem;margin-bottom:1.4rem;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--purple);letter-spacing:.06em;margin-bottom:.4rem;">🔍 Finding the right ticker</div>
+      <div style="font-size:.58rem;color:var(--muted2);line-height:1.8;">Go to <strong style="color:var(--accent);">finance.yahoo.com</strong> → search for your stock or ETF → use the ticker shown in the URL or next to the name. <br>Example: searching "Vanguard All World" shows <strong style="color:var(--text);">VWCE.DE</strong> for the Xetra-listed version.</div>
+    </div>
+
+    <button onclick="closeHelp()" style="width:100%;background:var(--accent);border:none;color:#fff;border-radius:10px;padding:.75rem;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.08em;">Got it — let's go!</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hd">
+  <div class="hd-left">
+    <h1>Portfolio Tracker</h1>
+    <div class="tagline"><span class="dot live" style="display:inline-block;margin-right:5px"></span>Crypto: WebSocket · Stocks: REST 15s</div>
+  </div>
+  <div class="hd-right">
+    <div class="clock"><em id="clockH">--</em>:<em id="clockM">--</em><span id="clockS" style="color:var(--muted)">:--</span></div>
+    <div class="ws-row">
+      <div class="dot warn" id="wsDot"></div><span id="wsLabel">Connecting…</span>
+      <button onclick="openSettingsModal()" style="margin-left:.6rem;background:rgba(79,127,255,.1);border:1px solid rgba(79,127,255,.25);color:var(--accent);border-radius:5px;padding:.18rem .55rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.08em;transition:all .12s;" title="Cloud sync settings">☁ SYNC</button>
+      <button onclick="shareLink()" style="margin-left:.3rem;background:rgba(79,127,255,.1);border:1px solid rgba(79,127,255,.25);color:var(--accent);border-radius:5px;padding:.18rem .55rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.08em;transition:all .12s;" title="Copy share link">⛓ SHARE</button>
+      <button onclick="openHelp()" style="margin-left:.3rem;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);color:var(--purple);border-radius:5px;padding:.18rem .55rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.08em;transition:all .12s;" title="How to use">? HELP</button>
+    </div>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="kpi-l">Total (USD)</div>
+    <div class="kpi-v" id="kUsd">$—</div>
+    <div class="kpi-s" id="kCount">0 positions</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l">Total (EUR)</div>
+    <div class="kpi-v cyan" id="kEur">€—</div>
+    <div class="kpi-s" id="kRate">rate —</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l" style="display:flex;justify-content:space-between;align-items:center;">
+        Daily P&amp;L
+        <button onclick="resetPnl()" style="background:rgba(0,0,0,.04);border:1px solid var(--border2);color:var(--muted2);border-radius:4px;padding:1px 6px;cursor:pointer;font-family:'Space Mono',monospace;font-size:.42rem;letter-spacing:.05em;" title="Reset P&L to now">↺ reset</button>
+    </div>
+    <div class="kpi-v" id="kPnl">—</div>
+    <div class="kpi-s" id="kPnlPct">vs open</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l">Crypto</div>
+    <div class="kpi-v cyan" id="kCrypto">$—</div>
+    <div class="kpi-s" id="kCryptoPct">— %</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l">Stocks / ETF</div>
+    <div class="kpi-v green" id="kStocks">$—</div>
+    <div class="kpi-s" id="kStocksPct">— %</div>
+  </div>
+</div>
+
+<!-- CHART -->
+<div class="chart-card">
+  <div class="chart-hd">
+    <div class="chart-label">Portfolio Value — Today</div>
+    <div class="chart-range" id="chartRange">—</div>
+  </div>
+  <canvas id="chart"></canvas>
+</div>
+
+<!-- DIST BAR -->
+<div class="dist-wrap">
+  <div class="dist-bar" id="distBar"></div>
+  <div class="dist-legend" id="distLegend"></div>
+</div>
+
+<!-- HOLDINGS -->
+<div class="section-label">
+  <span>Holdings</span>
+  <span id="lastUpdate" style="color:var(--muted)">—</span>
+</div>
+<div class="holdings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+  <div>
+    <div style="font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;padding-left:.2rem">⬛ Stocks / ETF</div>
+    <div class="holdings" id="stocksList"></div>
+  </div>
+  <div>
+    <div style="font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:.4rem;padding-left:.2rem">◈ Crypto</div>
+    <div class="holdings" id="cryptoList"></div>
+  </div>
+</div>
+
+<!-- ADD FORM -->
+<div class="section-label" style="margin-top:.4rem">Add Position</div>
+<div class="add-card">
+  <div class="form-grid">
+    <div class="fld"><label>Type</label>
+      <select id="fType">
+        <option value="Crypto">Crypto</option>
+        <option value="Stock">Stock / ETF</option>
+      </select>
+    </div>
+    <div class="fld"><label>Symbol</label>
+      <input id="fSymbol" placeholder="BTC · VWCE.DE · AAPL · IE00BK5BQT80" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="fld"><label>Label</label>
+      <input id="fLabel" placeholder="Vanguard All-World" autocomplete="off">
+    </div>
+    <div class="fld"><label>Quantity</label>
+      <input id="fQty" type="number" min="0" step="0.000001" placeholder="0.00">
+    </div>
+  </div>
+  <div class="form-actions">
+    <span class="msg" id="formMsg"></span>
+    <button class="btn-add" onclick="addAsset()">+ Add</button>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status">
+  <div id="statusMsg"><span>[SYS]</span> Initialising…</div>
+  <div class="ts" id="statusTs">—</div>
+</div>
+
+<script>
+/* =============================================================
+   STORAGE — localStorage + JSONBin cloud sync
+============================================================= */
+const STORE      = 'ptf_assets_v3';
+const STORE_BIN  = 'ptf_bin_id';
+const STORE_KEY  = 'ptf_api_key';
+const STORE_DAY  = 'ptf_day_open';  // {value, date:'YYYY-MM-DD'}
+const STORE_MODE = 'ptf_sync_mode'; // 'local' | 'cloud'
+const JB_API     = 'https://api.jsonbin.io/v3';
+
+function getSyncMode(){ return localStorage.getItem(STORE_MODE) || ''; }
+function setSyncMode(m){ localStorage.setItem(STORE_MODE, m); }
+function isCloud(){ return getSyncMode() === 'cloud'; }
+
+// ── Daily P&L helpers ────────────────────────────────────────
+function getTodayStr(){ return new Date().toISOString().slice(0,10); }
+function loadDayOpen(){ try{ return JSON.parse(localStorage.getItem(STORE_DAY)||'null'); }catch{ return null; } }
+function saveDayOpen(v){ localStorage.setItem(STORE_DAY, JSON.stringify({value:v, date:getTodayStr()})); }
+
+let _dayOpenSet = false;  // guard: only set once per session, after real prices arrive
+
+function checkDayOpen(total){
+  if(total <= 0 || _dayOpenSet) return;
+  _dayOpenSet = true;
+  const stored = loadDayOpen();
+  const today  = getTodayStr();
+  if(!stored || stored.date !== today){
+    // New day or first ever launch — save current total as today's open
+    saveDayOpen(total);
+    S.sessionStart = total;
+    sysMsg('📅 Day open set: $' + total.toFixed(2));
+  } else {
+    // Same day — restore saved open so P&L survives restarts
+    S.sessionStart = stored.value;
+    const pnl = total - stored.value;
+    sysMsg('📅 Day open $' + stored.value.toFixed(2) + ' · P&L ' + (pnl>=0?'+':'') + '$' + Math.abs(pnl).toFixed(2));
+  }
+}
+
+function loadAssets(){ try{ return JSON.parse(localStorage.getItem(STORE)||'[]'); }catch{ return []; } }
+function saveAssets(a){ localStorage.setItem(STORE,JSON.stringify(a)); }
+function getApiKey(){ return localStorage.getItem(STORE_KEY)||''; }
+function getBinId() { return localStorage.getItem(STORE_BIN)||''; }
+
+// ── JSONBin: create a new bin for this user ──────────────────
+async function createBin(apiKey, data){
+  try{
+    const r = await fetch(`${JB_API}/b`, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Master-Key':apiKey,
+        'X-Bin-Name':'portfolio-tracker',
+        'X-Bin-Private':'true'
+      },
+      body: JSON.stringify({assets: data})
+    });
+    const d = await r.json();
+    if(!r.ok){ sysMsg('⚠ Bin create error: '+( d?.message||r.status)); return null; }
+    const id = d?.metadata?.id;
+    if(id){ localStorage.setItem(STORE_BIN, id); sysMsg('✓ Bin created: '+id); return id; }
+    sysMsg('⚠ No bin ID returned'); return null;
+  }catch(e){ sysMsg('⚠ Network error: '+e.message); return null; }
+}
+
+// ── JSONBin: save assets to cloud ───────────────────────────
+async function cloudSave(a){
+  const apiKey = getApiKey(); if(!apiKey){ sysMsg('⚠ No API key set'); return; }
+  let binId = getBinId();
+  if(!binId){
+    sysMsg('☁ Creating bin…');
+    binId = await createBin(apiKey, a);
+    if(!binId) return;
+  }
+  try{
+    const r = await fetch(`${JB_API}/b/${binId}`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':apiKey},
+      body: JSON.stringify({assets:a})
+    });
+    const d = await r.json();
+    if(!r.ok){ sysMsg('⚠ Sync error: '+(d?.message||r.status)); return; }
+    sysMsg('✓ Synced to cloud');
+  }catch(e){ sysMsg('⚠ Sync failed: '+e.message); }
+}
+
+// ── JSONBin: load assets from cloud ─────────────────────────
+async function cloudLoad(){
+  const apiKey = getApiKey(); if(!apiKey) return null;
+  const binId  = getBinId();  if(!binId)  return null;
+  try{
+    const r = await fetch(`${JB_API}/b/${binId}/latest`, {
+      headers:{'X-Master-Key':apiKey}
+    });
+    const d = await r.json();
+    return d?.record?.assets || null;
+  }catch(_){ return null; }
+}
+
+// ── Save wrapper — local only OR local + cloud ───────────────
+function saveAssetsAll(a){
+  saveAssets(a);
+  if(isCloud()) cloudSave(a);
+}
+
+// ── URL import ───────────────────────────────────────────────
+(function importFromURL(){
+  try{
+    const p = new URLSearchParams(location.search).get('p');
+    if(!p) return;
+    const imported = JSON.parse(atob(p));
+    if(Array.isArray(imported) && imported.length){
+      localStorage.setItem(STORE, JSON.stringify(imported));
+      history.replaceState(null,'', location.pathname);
+    }
+  }catch(_){}
+})();
+
+const DEMO_ASSETS = [
+  { type: 'Crypto', symbol: 'BTC', label: 'Bitcoin',  qty: 0.021 },
+  { type: 'Crypto', symbol: 'ETH', label: 'Ethereum', qty: 0.45  },
+  { type: 'Crypto', symbol: 'SOL', label: 'Solana',   qty: 4.5   },
+];
+
+let assets = loadAssets();
+if (!assets.length) {
+  assets = DEMO_ASSETS;
+  saveAssets(assets);
+}
+let editingIdx = null;
+
+// ── Share link ───────────────────────────────────────────────
+function shareLink(){
+  if(!assets.length){ sysMsg('No assets to share yet'); return; }
+  const encoded = btoa(JSON.stringify(assets));
+  const url = location.origin + location.pathname + '?p=' + encoded;
+  navigator.clipboard.writeText(url).then(()=>{
+    sysMsg('✓ Link copied!');
+  }).catch(()=>{ window.prompt('Copy this link:', url); });
+}
+
+// ── Help modal ───────────────────────────────────────────────
+function openHelp(){ document.getElementById('helpModal').style.display='flex'; }
+function closeHelp(){ document.getElementById('helpModal').style.display='none'; }
+
+// ── First run modal ──────────────────────────────────────────
+function showFirstRun(){
+  document.getElementById('firstRunModal').style.display='flex';
+}
+function chooseMode(mode){
+  setSyncMode(mode);
+  document.getElementById('firstRunModal').style.display='none'; setTimeout(openHelp, 300);
+  if(mode==='cloud'){
+    openKeyModal();
+  } else {
+    sysMsg('✓ Local storage mode — your data stays on this device');
+    updateModeIndicator();
+  }
+}
+
+// ── Settings modal ────────────────────────────────────────────
+function openSettingsModal(){
+  openKeyModal();
+}
+function openKeyModal(){
+  const modal = document.getElementById('keyModal');
+  modal.style.display='flex';
+  document.getElementById('keyInput').value = getApiKey();
+  document.getElementById('binInput').value = '';
+  const binId = getBinId();
+  document.getElementById('binRow').style.display = 'none';
+  const cbRow = document.getElementById('currentBinRow');
+  if(binId){ cbRow.style.display='block'; document.getElementById('currentBinId').textContent=binId; }
+  else cbRow.style.display='none';
+  // Update mode buttons + cloud config visibility
+  updateModalMode();
+}
+function closeKeyModal(){ document.getElementById('keyModal').style.display='none'; }
+
+function updateModalMode(){
+  const mode = getSyncMode();
+  const isC  = mode === 'cloud';
+  const btnL = document.getElementById('btnModeLocal');
+  const btnC = document.getElementById('btnModeCloud');
+  const badge= document.getElementById('modeBadge');
+  const cc   = document.getElementById('cloudConfig');
+  if(btnL) btnL.style.cssText += isC ? ';background:none;color:var(--muted2)' : ';background:rgba(0,168,84,.08);color:var(--green);border-color:rgba(0,168,84,.3)';
+  if(btnC) btnC.style.cssText += isC ? ';background:rgba(58,107,255,.08);color:var(--accent);border-color:rgba(58,107,255,.3)' : ';background:none;color:var(--muted2)';
+  if(badge) badge.textContent = isC ? 'Cloud sync active — assets saved to JSONBin' : 'Local mode — assets saved on this device only';
+  if(cc) cc.style.display = isC ? 'block' : 'none';
+}
+
+function resetSetup(){
+  localStorage.removeItem(STORE_MODE);
+  closeKeyModal();
+  setTimeout(()=>showFirstRun(), 200);
+}
+
+function switchMode(mode){
+  setSyncMode(mode);
+  updateModalMode();
+  updateModeIndicator();
+  if(mode==='local'){
+    sysMsg('✓ Switched to local storage');
+  } else {
+    sysMsg('☁ Cloud sync enabled — configure JSONBin below');
+  }
+}
+
+function updateModeIndicator(){
+  // Update tagline dot label
+  const mode = getSyncMode();
+  const tag  = document.querySelector('.tagline');
+  if(tag){
+    const icon = mode === 'cloud' ? '&#9729;' : '&#128274;';
+    // leave dot span, just update text after it
+  }
+}
+
+async function modalAction(action){
+  const key = document.getElementById('keyInput').value.trim();
+  if(!key){ alert('Paste your JSONBin Master Key first'); return; }
+  localStorage.setItem(STORE_KEY, key);
+
+  if(action === 'create'){
+    // Create fresh bin with current local assets
+    closeKeyModal();
+    sysMsg('☁ Creating new bin…');
+    localStorage.removeItem(STORE_BIN); // clear any old bin
+    await cloudSave(assets);
+
+  } else if(action === 'load'){
+    // Show bin ID field if not visible
+    const binRow = document.getElementById('binRow');
+    const binVal = document.getElementById('binInput').value.trim();
+    if(binRow.style.display === 'none'){
+      binRow.style.display = 'block';
+      document.getElementById('binInput').focus();
+      return; // wait for user to enter bin ID then click again
+    }
+    if(!binVal){ alert('Paste your Bin ID'); return; }
+    localStorage.setItem(STORE_BIN, binVal);
+    closeKeyModal();
+    sysMsg('☁ Loading from bin…');
+    const cloudAssets = await cloudLoad();
+    if(cloudAssets && cloudAssets.length){
+      assets = cloudAssets;
+      saveAssets(assets);
+      setSyncMode('cloud');
+      resetHistory();
+      reconnectWS(); startStockPoller(); startHypePoller(); render();
+      sysMsg('✓ '+ assets.length +' assets loaded from cloud!');
+    } else {
+      sysMsg('⚠ Nothing found in that bin');
+    }
+
+  } else if(action === 'push'){
+    // Overwrite existing bin with local assets
+    closeKeyModal();
+    sysMsg('☁ Pushing to bin…');
+    await cloudSave(assets);
+  }
+}
+
+/* =============================================================
+   CANVAS — init once, never resize in draw loop (scalper fix)
+============================================================= */
+const CV = {};
+function initCanvas(){
+  const el = document.getElementById('chart');
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.max(300, el.getBoundingClientRect().width || el.parentElement.clientWidth);
+  const H = 220;
+  el.width  = Math.round(W * dpr);
+  el.height = Math.round(H * dpr);
+  const ctx = el.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  CV.el=el; CV.ctx=ctx; CV.W=W; CV.H=H; CV.dpr=dpr;
+}
+let _rzTimer;
+window.addEventListener('resize',()=>{ clearTimeout(_rzTimer); _rzTimer=setTimeout(initCanvas,150); });
+
+/* =============================================================
+   PRICE CACHE
+============================================================= */
+const PC      = {};   // { SYMBOL: current price }
+const PC_OPEN = {};   // { SYMBOL: price at session open } — for per-asset P&L colouring
+let eurRate = null;
+
+// ── Binance WebSocket for ALL known crypto symbols ──────────
+const BINANCE_MAP = {
+  BTC:'btcusdt',ETH:'ethusdt',SOL:'solusdt',BNB:'bnbusdt',
+  XRP:'xrpusdt',ADA:'adausdt',DOGE:'dogeusdt',AVAX:'avaxusdt',
+  MATIC:'maticusdt',LINK:'linkusdt',UNI:'uniusdt',LTC:'ltcusdt',
+  BCH:'bchusdt',AAVE:'aaveusdt',ATOM:'atomusdt',DOT:'dotusdt',
+  AXS:'axsusdt',TRX:'trxusdt', ASTER: 'asterusdt'
+};
+
+let wsConn = null;
+let wsRetry = 0;
+let wsStreams = [];   // currently subscribed streams
+
+function buildStreams(){
+  const syms = assets
+    .filter(a=>a.type==='Crypto' && a.symbol.toUpperCase()!=='HYPE')
+    .map(a=>BINANCE_MAP[a.symbol.toUpperCase()])
+    .filter(Boolean);
+  return [...new Set(syms)];
+}
+
+function connectWS(){
+  const streams = buildStreams();
+  if(!streams.length){
+    setWsDot('warn','No crypto assets');
+    return;
+  }
+  wsStreams = streams;
+  const url = `wss://data-stream.binance.vision/stream?streams=${streams.map(s=>s+'@aggTrade').join('/')}`;
+  setWsDot('warn','Connecting…');
+  try{ if(wsConn) wsConn.close(); }catch(_){}
+
+  wsConn = new WebSocket(url);
+
+  wsConn.onopen = () => {
+    wsRetry = 0;
+    setWsDot('live',`WS · ${streams.length} stream${streams.length>1?'s':''}`);
+    sysMsg('Connected · '+streams.map(s=>s.replace('usdt','').toUpperCase()).join(' · '));
+  };
+
+  wsConn.onmessage = ev => {
+    let msg; try{ msg=JSON.parse(ev.data); }catch{ return; }
+    const d = msg.data || msg;
+    if(d.e !== 'aggTrade') return;
+
+    const sym = d.s.replace('USDT','');
+    const price = parseFloat(d.p);
+    const prev  = PC[sym];
+    PC[sym] = price;
+    if(PC_OPEN[sym] === undefined) PC_OPEN[sym] = price;  // lock in session open
+
+    // Flash the matching holding row
+    if(prev !== undefined && prev !== price){
+      const dir = price > prev ? 'up' : 'dn';
+      flashRow(sym, dir);
+    }
+
+    // Throttled UI at ~15fps — same as scalper
+    const now = performance.now();
+    if(now - S.lastRender > 66){
+      S.lastRender = now;
+      render();
+    }
+  };
+
+  wsConn.onerror = () => setWsDot('err','WS error');
+  wsConn.onclose = () => {
+    setWsDot('warn','Reconnecting…');
+    wsRetry = Math.min(wsRetry+1,8);
+    setTimeout(connectWS, Math.min(30000,1000*Math.pow(2,wsRetry))+Math.random()*300);
+  };
+}
+
+function reconnectWS(){
+  // Called when assets change — rebuild streams
+  const newStreams = buildStreams();
+  const same = newStreams.length===wsStreams.length && newStreams.every(s=>wsStreams.includes(s));
+  if(!same) connectWS();
+}
+
+// ── Yahoo Finance via proxy for stocks (5s poll, fully parallel) ──────────
+let _stockTimer = null;
+let _yhostFlip  = false; // alternate query1/query2 to reduce rate-limit hits
+
+// ISIN → Yahoo ticker fallback map (common European ETFs)
+const ISIN_MAP = {
+  // Vanguard / iShares
+  'IE00BK5BQT80': 'VWCE.DE',
+  'IE00B3RBWM25': 'VWRL.AS',
+  'IE00B4L5Y983': 'IWDA.AS',
+  'IE00B5BMR087': 'CSPX.AS',
+  'IE00B3WJKG14': 'IUSN.DE',
+  'IE00BKX55T58': 'EUNL.DE',
+  'LU0290358497': 'DBXD.DE',
+  'IE00B8N46K15': 'IEMB.DE',
+  // VanEck
+  'IE00B3Y7YBV57': 'SMH',        // VanEck Semiconductor
+  'IE00B00G0F94':  'GDX',        // VanEck Gold Miners
+  'IE00B3Y5S8V5':  'DFEN.DE',    // VanEck Defense
+  // US stocks by CUSIP
+  'US75513E1010':  'RTX',        // RTX Corp
+  'US38290F1012':  'GPRO',       // GoPro
+  'US9500191083':  'WRD',        // WeRide
+  // Other common ones
+  'US0231351067':  'AMZN',
+  'US5949181045':  'MSFT',
+  'US0378331005':  'AAPL',
+  'US02079K3059':  'GOOGL',
+};
+
+// Suffixes to try if bare symbol fails (Xetra, Amsterdam, London, Milan)
+const EU_SUFFIXES = ['.DE','.AS','.MI','.PA','.L'];
+
+// Currency cache — symbol → 'USD' | 'EUR' | etc
+const PC_CCY = {};
+
+// ── YOUR Cloudflare Worker URL — set after deploying ──────
+const CF_WORKER = 'https://yahoo-proxy.paulofelismino1987.workers.dev';
+
+async function yahooFetch(ticker){
+  try{
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), 8000);
+    const r = await fetch(`${CF_WORKER}?ticker=${encodeURIComponent(ticker)}`, {signal: controller.signal});
+    clearTimeout(timer);
+    if(!r.ok) return null;
+    const json = await r.json();
+    const meta = json?.chart?.result?.[0]?.meta;
+    if(meta?.regularMarketPrice) return meta;
+  }catch(_){ return null; }
+  return null;
+}
+
+async function fetchOneStock(a){
+  let sym = a.symbol.toUpperCase().trim();
+  if(ISIN_MAP[sym]) sym = ISIN_MAP[sym];
+
+  const tickers = a._resolvedTicker
+    ? [a._resolvedTicker]
+    : sym.includes('.') ? [sym] : [sym, ...EU_SUFFIXES.map(s=>sym+s)];
+
+  for(const ticker of tickers){
+    const meta = await yahooFetch(ticker);
+    if(meta){
+      const sym = a.symbol.toUpperCase();
+      PC[sym]     = meta.regularMarketPrice;
+      PC_CCY[sym] = meta.currency || 'USD';
+      if(PC_OPEN[sym] === undefined) PC_OPEN[sym] = meta.regularMarketPrice;  // lock in session open
+      a._resolvedTicker = ticker;
+      return true;
+    }
+  }
+  return false;
+}
+
+async function pollStocks(){
+  const stockAssets = assets.filter(a=>a.type!=='Crypto');
+  if(!stockAssets.length) return;
+
+  // Stagger 300ms apart to avoid rate limiting
+  for(const a of stockAssets){
+    fetchOneStock(a).then(ok => { if(ok) render(); });
+    await new Promise(r=>setTimeout(r, 300));
+  }
+
+  // After all attempted, retry failures once after 3s
+  setTimeout(async ()=>{
+    const failed = stockAssets.filter(a=>!PC[a.symbol.toUpperCase()]);
+    if(!failed.length) return;
+    sysMsg(`↻ Retrying ${failed.length} failed stocks…`);
+    for(const a of failed){
+      const ok = await fetchOneStock(a);
+      if(ok) render();
+      await new Promise(r=>setTimeout(r, 500));
+    }
+    const stillFailed = failed.filter(a=>!PC[a.symbol.toUpperCase()]).map(a=>a.symbol);
+    if(stillFailed.length) sysMsg('⚠ Still failing: '+stillFailed.join(', ')+' — use ✏️ to set Yahoo ticker');
+    else sysMsg('✓ All stocks loaded');
+  }, stockAssets.length * 300 + 1000);
+}
+
+function startStockPoller(){
+  if(_stockTimer) clearInterval(_stockTimer);
+  pollStocks();
+  // 15s interval — with 15 stocks that's still 1 req/sec average, safe for Yahoo
+  _stockTimer = setInterval(pollStocks, 15000);
+}
+
+// ── EUR rate (60s poll) ────────────────────────────────────
+async function fetchEur(){
+  try{
+    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d = await r.json();
+    if(d.rates?.EUR) eurRate = d.rates.EUR;
+  }catch{ if(!eurRate) eurRate = 0.92; }
+}
+
+let _hypeTimer = null;
+
+async function pollHype(){
+  const hasHype = assets.some(a => a.symbol.toUpperCase() === 'HYPE' && a.type === 'Crypto');
+  if(!hasHype) return;
+  try{
+    const r = await fetch('https://api.hyperliquid.xyz/info', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({type: 'allMids'})
+    });
+    const data = await r.json();
+    if(data.HYPE){
+      const price = parseFloat(data.HYPE);
+      PC['HYPE'] = price;
+      PC_CCY['HYPE'] = 'USD';
+      if(PC_OPEN['HYPE'] === undefined) PC_OPEN['HYPE'] = price;  // lock in session open
+      render();
+    }
+  }catch(e){ sysMsg('⚠ HYPE fetch failed: '+e.message); }
+}
+
+function startHypePoller(){
+  if(_hypeTimer) clearInterval(_hypeTimer);
+  pollHype();
+  _hypeTimer = setInterval(pollHype, 3000); // every 3s
+}
+/* =============================================================
+   SESSION STATE
+============================================================= */
+const S = {
+  // Raw ticks — every price point, used to build candles
+  ticks:        [],   // [{t, v}]  t=timestamp ms, v=USD total
+  // 1-minute OHLC candles
+  candles:      [],   // [{t, o, h, l, c}]
+  sessionStart: null,
+  lastRender:   0,
+  CANDLE_MS:    1000,  // 1 second per candle
+};
+
+/* =============================================================
+   COMPUTE
+============================================================= */
+function compute(){
+  let total=0, cryptoTotal=0, stockTotal=0;
+  const enriched = assets.map(a=>{
+    const rawPrice = PC[a.symbol.toUpperCase()] || null;
+    const ccy      = PC_CCY[a.symbol.toUpperCase()] || 'USD';
+    // Convert to USD so totals are consistent
+    const price = rawPrice
+      ? (ccy === 'EUR' && eurRate ? rawPrice / eurRate : rawPrice)
+      : null;
+    const value = price ? price * a.qty : null;
+    if(value){
+      total += value;
+      if(a.type==='Crypto') cryptoTotal += value;
+      else stockTotal += value;
+    }
+    return {...a, price, rawPrice, ccy, value};
+  });
+  return {enriched, total, cryptoTotal, stockTotal};
+}
+
+/* =============================================================
+   CANDLE BUILDER — aggregates raw ticks into OHLC candles
+============================================================= */
+function allAssetsLoaded(){
+  return assets.length > 0 && assets.every(a => PC[a.symbol.toUpperCase()]);
+}
+
+let _chartReady = false;
+
+function addTick(total){
+  if(!_chartReady){
+    if(total <= 0) return;
+    // Wait until every asset has a price — prevents the spike on slow stock loads
+    if(!allAssetsLoaded()) return;
+    _chartReady = true;
+    checkDayOpen(total);  // sets S.sessionStart from localStorage or saves new open
+  }
+
+  const t = Date.now();
+  S.ticks.push({t, v: total});
+
+  const cutoff = t - 10 * 60000;
+  while(S.ticks.length && S.ticks[0].t < cutoff) S.ticks.shift();
+
+  const cs = S.CANDLE_MS;
+  const buckets = {};
+  for(const tick of S.ticks){
+    const key = Math.floor(tick.t / cs) * cs;
+    if(!buckets[key]) buckets[key] = {t:key, o:tick.v, h:tick.v, l:tick.v, c:tick.v};
+    else {
+      buckets[key].h = Math.max(buckets[key].h, tick.v);
+      buckets[key].l = Math.min(buckets[key].l, tick.v);
+      buckets[key].c = tick.v;
+    }
+  }
+  S.candles = Object.values(buckets).sort((a,b)=>a.t-b.t);
+}
+
+function resetHistory(){
+  S.ticks=[]; S.candles=[]; S.sessionStart=null; _chartReady=false;
+  // Clear per-asset open prices so they re-anchor on next price tick
+  Object.keys(PC_OPEN).forEach(k => delete PC_OPEN[k]);
+}
+
+function resetPnl(){
+  const {total} = compute();
+  if(total > 0){
+    saveDayOpen(total);
+    S.sessionStart = total;
+    _dayOpenSet = true;
+    sysMsg('↺ Day open reset to $' + total.toFixed(2));
+    render();
+  }
+}
+/* =============================================================
+   DRAW CHART — candlestick, tight zoom, EUR labels
+============================================================= */
+function drawChart(){
+  if(!CV.ctx) return;
+  const {ctx,W,H} = CV;
+  const candles = S.candles;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Show last 60 candles only — scrolling window like a real trading chart
+  const visible = candles.slice(-60);
+  if(visible.length < 2){
+    ctx.fillStyle='rgba(0,0,0,.3)';
+    ctx.font='10px Space Mono'; ctx.textAlign='center';
+    ctx.fillText('Building candles…', W/2, H/2);
+    ctx.textAlign='left';
+    return;
+  }
+
+  const pad = {top:14, bottom:20, left:8, right:96};
+  const cW  = W - pad.left - pad.right;
+  const cH  = H - pad.top  - pad.bottom;
+
+  // Y range = exact high/low of visible candles + small padding
+  const rawMin = Math.min(...visible.map(c=>c.l));
+  const rawMax = Math.max(...visible.map(c=>c.h));
+  const span   = Math.max(rawMax - rawMin, visible[visible.length-1].c * 0.00005);
+  const yMin   = rawMin - span * 0.15;
+  const yMax   = rawMax + span * 0.15;
+  const py     = v => pad.top + cH - ((v - yMin) / (yMax - yMin)) * cH;
+
+  // Candle sizing
+  const step    = cW / visible.length;
+  const candleW = Math.max(2, step - 2);
+  const cx      = i => pad.left + i * step + step / 2;
+
+  // Grid lines + EUR labels
+  for(let i=0;i<=4;i++){
+    const y   = pad.top + (i/4)*cH;
+    const val = yMax - (i/4)*(yMax-yMin);
+    ctx.beginPath(); ctx.strokeStyle='rgba(0,0,0,.06)'; ctx.lineWidth=1;
+    ctx.moveTo(pad.left,y); ctx.lineTo(W-pad.right,y); ctx.stroke();
+    ctx.fillStyle='rgba(0,0,0,.35)'; ctx.font='7.5px Space Mono';
+    const label = eurRate
+      ? '€'+(val*eurRate).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2})
+      : '$'+val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    ctx.fillText(label, W-pad.right+5, y+3);
+  }
+
+  // Session open line
+  if(S.sessionStart){
+    const oy = py(S.sessionStart);
+    ctx.save(); ctx.setLineDash([2,5]);
+    ctx.beginPath(); ctx.strokeStyle='rgba(0,0,0,.15)'; ctx.lineWidth=1;
+    ctx.moveTo(pad.left,oy); ctx.lineTo(W-pad.right,oy); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Draw candles
+  visible.forEach((c, i)=>{
+    const x    = cx(i);
+    const isUp = c.c >= c.o;
+    const col  = isUp ? '#00e676' : '#ff1744';
+    const colF = isUp ? 'rgba(0,230,118,.15)' : 'rgba(255,23,68,.15)';
+
+    const yO = py(c.o), yC = py(c.c);
+    const yH = py(c.h), yL = py(c.l);
+    const bodyTop = Math.min(yO, yC);
+    const bodyH   = Math.max(1, Math.abs(yC - yO));
+    const half    = candleW / 2;
+
+    // Wick
+    ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=1;
+    ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
+
+    // Body
+    ctx.fillStyle   = isUp ? col : colF;
+    ctx.strokeStyle = col; ctx.lineWidth=1;
+    ctx.fillRect  (x - half, bodyTop, candleW, bodyH);
+    ctx.strokeRect(x - half, bodyTop, candleW, bodyH);
+  });
+
+  // Live dot on last close
+  const last = visible[visible.length-1];
+  const lx = cx(visible.length-1), ly = py(last.c);
+  const lc = last.c >= last.o ? '#00e676' : '#ff1744';
+  ctx.beginPath(); ctx.arc(lx,ly,3,0,Math.PI*2); ctx.fillStyle=lc; ctx.fill();
+  ctx.beginPath(); ctx.arc(lx,ly,6,0,Math.PI*2);
+  ctx.strokeStyle=lc+'55'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // Range label
+  const rangeEl = document.getElementById('chartRange');
+  if(rangeEl){
+    const lo = eurRate ? '€'+(yMin*eurRate).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '$'+yMin.toFixed(2);
+    const hi = eurRate ? '€'+(yMax*eurRate).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '$'+yMax.toFixed(2);
+    rangeEl.textContent = `${lo} – ${hi} · ${visible.length}s`;
+  }
+}
+
+/* =============================================================
+   RENDER — surgical DOM patches, zero innerHTML on live rows
+   Structure is only rebuilt when asset list changes (add/remove/edit)
+============================================================= */
+const SEG_COLORS = ['#4f7fff','#00e676','#f7931a','#ffd740','#b388ff','#18ffff','#ff5c6a','#ff9f40'];
+
+// Fingerprint of last-rendered structure so we know when to rebuild
+let _structKey = '';
+let _structEditIdx = null;
+
+function buildRowHTML(a, i, total){
+  const isCrypto = a.type==='Crypto';
+  const pct       = total>0&&a.value ? (a.value/total*100).toFixed(1) : '0.0';
+  const barColor  = isCrypto ? 'var(--cyan)' : 'var(--green)';
+  const feedBadge = isCrypto ? '<span class="badge ws">WS</span>' : '<span class="badge poll">5s</span>';
+  const typeBadge = isCrypto ? '<span class="badge crypto">Crypto</span>' : '<span class="badge stock">ETF</span>';
+
+  if(editingIdx===i){
+    const resolvedTicker = a._resolvedTicker || '';
+    return `<div class="row editing" data-i="${i}">
+      <div class="edit-wrap">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--text);min-width:70px">${a.symbol}</span>
+        <input id="eLabel" value="${a.label||a.symbol}" placeholder="Label">
+        <input id="eQty" type="number" value="${a.qty}" min="0" step="0.000001" placeholder="Qty" style="max-width:120px">
+        <input id="eTicker" value="${resolvedTicker}" placeholder="Yahoo ticker (e.g. VWCE.DE)" style="max-width:160px;opacity:.7" title="Override Yahoo Finance ticker — use this if the symbol isn't resolving">
+        <button class="btn-save" onclick="saveEdit(${i})">✔ Save</button>
+        <button class="btn-cancel" onclick="cancelEdit()">✕</button>
+        <button class="btn-ico del" onclick="deleteAsset(${i})" title="Delete">🗑</button>
+      </div>
+    </div>`;
+  }
+
+  const nativePrice = a.rawPrice || a.price;
+  const nativeSym   = a.ccy === 'EUR' ? '€' : '$';
+  const priceStr = nativePrice ? nativeSym+nativePrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '…';
+  const valStr   = a.value ? '$'+a.value.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '…';
+  // Color value vs session open price
+  const openP    = PC_OPEN[a.symbol.toUpperCase()];
+  const valColor = (!openP || !a.price) ? '' : a.price > openP ? 'style="color:var(--green)"' : a.price < openP ? 'style="color:var(--red)"' : '';
+
+  return `<div class="row ${isCrypto?'crypto-row':'stock-row'}" data-sym="${a.symbol.toUpperCase()}" data-i="${i}">
+    <div class="r-info">
+      <div class="r-name">${a.label||a.symbol}</div>
+      <div class="r-meta">${feedBadge}<span>${a.symbol}</span><span>×${a.qty%1===0?a.qty.toLocaleString():a.qty.toFixed(6)}</span></div>
+    </div>
+    <div class="col price-col">
+      <div class="col-l">Price</div>
+      <div class="col-v" data-role="price">${priceStr}</div>
+    </div>
+    <div class="col">
+      <div class="col-l">Value</div>
+      <div class="col-v" data-role="val" data-raw="${a.value||0}" ${valColor}>${valStr}</div>
+    </div>
+    <div class="bar-col">
+      <div class="bar-pct" data-role="pct">${pct}%</div>
+      <div class="bar-track"><div class="bar-fill" data-role="bar" style="width:${pct}%;background:${barColor}"></div></div>
+    </div>
+    <div class="actions">
+      <button class="btn-ico" onclick="refreshAsset(${i})" title="Refresh price">↻</button>
+      <button class="btn-ico" onclick="startEdit(${i})">✏️</button>
+      <button class="btn-ico del" onclick="deleteAsset(${i})">🗑</button>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const {enriched,total,cryptoTotal,stockTotal} = compute();
+  const now = new Date();
+
+  // Record tick for candle building
+  if(total > 0) addTick(total);
+
+  // ── KPIs: only write if changed ─────────────────────────────────────────────
+  const usdStr = total>0 ? '$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '$—';
+  const cntStr = enriched.length+' position'+(enriched.length!==1?'s':'');
+  _setText('kUsd', usdStr);
+  _setText('kCount', cntStr);
+
+  if(eurRate && total>0){
+    _setText('kEur', '€'+(total*eurRate).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2}));
+    _setText('kRate', `1 USD = ${eurRate.toFixed(4)} EUR`);
+  }
+
+  if(S.sessionStart && total>0){
+    const pnl=total-S.sessionStart, pnlPct=(pnl/S.sessionStart)*100;
+    const el = document.getElementById('kPnl');
+    const newTxt = (pnl>=0?'+':'')+'$'+Math.abs(pnl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const newCls = 'kpi-v '+(pnl>=0?'green':'red');
+    if(el.textContent!==newTxt) el.textContent=newTxt;
+    if(el.className!==newCls) el.className=newCls;
+    _setText('kPnlPct', (pnlPct>=0?'+':'')+pnlPct.toFixed(3)+'% vs open');
+  }
+
+  _setText('kCrypto', '$'+cryptoTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
+  _setText('kCryptoPct', total>0 ? (cryptoTotal/total*100).toFixed(1)+'% of total' : '0%');
+  _setText('kStocks', '$'+stockTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
+  _setText('kStocksPct', total>0 ? (stockTotal/total*100).toFixed(1)+'% of total' : '0%');
+
+  // ── Distribution bar: patch widths, only rebuild when count changes ──────────
+  const distBar    = document.getElementById('distBar');
+  const distLegend = document.getElementById('distLegend');
+  const filled = enriched.filter(a=>a.value);
+  if(filled.length && total>0){
+    const segs = distBar.querySelectorAll('.dist-seg');
+    if(segs.length !== filled.length){
+      distBar.innerHTML = filled.map((a,i)=>{
+        const w=(a.value/total*100).toFixed(1);
+        return `<div class="dist-seg" style="width:${w}%;background:${SEG_COLORS[i%SEG_COLORS.length]}"></div>`;
+      }).join('');
+      distLegend.innerHTML = filled.map((a,i)=>
+        `<div class="dl-item"><div class="dl-dot" style="background:${SEG_COLORS[i%SEG_COLORS.length]}"></div>${a.label||a.symbol} ${(a.value/total*100).toFixed(1)}%</div>`
+      ).join('');
+    } else {
+      filled.forEach((a,i)=>{
+        const w=(a.value/total*100).toFixed(1)+'%';
+        if(segs[i].style.width!==w) segs[i].style.width=w;
+      });
+    }
+  }
+
+  // ── Holdings rows — two separate lists ───────────────────────────────────────
+  const stocks = enriched.filter(a=>a.type!=='Crypto');
+  const cryptos = enriched.filter(a=>a.type==='Crypto');
+  const structKey = enriched.map(a=>`${a.symbol}:${a.qty}:${a.type}`).join('|');
+  const needRebuild = structKey !== _structKey || editingIdx !== _structEditIdx;
+
+  const stocksList  = document.getElementById('stocksList');
+  const cryptoList  = document.getElementById('cryptoList');
+
+  if(needRebuild){
+    _structKey = structKey;
+    _structEditIdx = editingIdx;
+    stocksList.innerHTML  = stocks.length  ? stocks.map(a=>buildRowHTML(a, enriched.indexOf(a), total)).join('') : '<div class="empty" style="padding:1.5rem 0"><p>No stocks yet</p></div>';
+    cryptoList.innerHTML  = cryptos.length ? cryptos.map(a=>buildRowHTML(a, enriched.indexOf(a), total)).join('') : '<div class="empty" style="padding:1.5rem 0"><p>No crypto yet</p></div>';
+  } else {
+    // Patch text nodes in both lists
+    enriched.forEach((a,i)=>{
+      const row = document.querySelector(`.row[data-i="${i}"]`);
+      if(!row || editingIdx===i) return;
+
+      const priceEl = row.querySelector('[data-role="price"]');
+      const valEl   = row.querySelector('[data-role="val"]');
+      const pctEl   = row.querySelector('[data-role="pct"]');
+      const barEl   = row.querySelector('[data-role="bar"]');
+
+      const nativeP  = a.rawPrice || a.price;
+      const nativeSym= a.ccy === 'EUR' ? '€' : '$';
+      const newPrice = nativeP ? nativeSym+nativeP.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '…';
+      const newVal   = a.value ? '$'+a.value.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '…';
+      const pct      = total>0&&a.value ? (a.value/total*100).toFixed(1) : '0.0';
+
+      if(priceEl && priceEl.textContent!==newPrice){
+        priceEl.classList.remove('flash-up','flash-dn');
+        void priceEl.offsetWidth;
+        const prevP = parseFloat(priceEl.dataset.raw||0);
+        const curP  = a.price||0;
+        if(prevP > 0) priceEl.classList.add(curP > prevP ? 'flash-up' : 'flash-dn');
+        priceEl.dataset.raw = String(a.price||0);
+        priceEl.textContent = newPrice;
+      }
+      if(pctEl   && pctEl.textContent!==pct+'%')    pctEl.textContent=pct+'%';
+      if(barEl   && barEl.style.width!==pct+'%')    barEl.style.width=pct+'%';
+
+      // Value: update text + flash on change (works for crypto AND stocks)
+      if(valEl){
+        const newRaw = String(a.value||0);
+        if(valEl.dataset.raw !== newRaw){
+          const prev = parseFloat(valEl.dataset.raw);
+          const cur  = parseFloat(newRaw);
+          if(prev > 0 && cur > 0 && prev !== cur){
+            valEl.classList.remove('flash-up','flash-dn');
+            void valEl.offsetWidth;
+            valEl.classList.add(cur > prev ? 'flash-up' : 'flash-dn');
+          }
+          valEl.dataset.raw = newRaw;
+          valEl.textContent = newVal;
+        }
+        // Re-apply open-price colour on every tick
+        const openP = PC_OPEN[a.symbol.toUpperCase()];
+        if(openP && a.price){
+          valEl.style.color = a.price > openP ? 'var(--green)' : a.price < openP ? 'var(--red)' : '';
+        }
+      }
+    });
+  }
+
+  // ── Chart + status ────────────────────────────────────────────────────────────
+  drawChart();
+  _setText('lastUpdate', 'Updated '+now.toLocaleTimeString('en-GB'));
+  _setText('statusTs', now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+}
+
+// Surgical text helper — skips the DOM write if nothing changed
+function _setText(id, val){
+  const el = document.getElementById(id);
+  if(el && el.textContent !== val) el.textContent = val;
+}
+
+/* =============================================================
+   FLASH — only targets already-rendered col-v, no DOM rebuild
+============================================================= */
+function flashRow(sym, dir){
+  const row = document.querySelector(`.row[data-sym="${sym.toUpperCase()}"]`);
+  if(!row) return;
+  const el = row.querySelector('[data-role="val"]');
+  if(!el) return;
+  el.classList.remove('flash-up','flash-dn');
+  void el.offsetWidth;
+  el.classList.add('flash-'+(dir==='up'?'up':'dn'));
+}
+
+/* =============================================================
+   CLOCK — lightweight, every second
+============================================================= */
+function tickClock(){
+  const n = new Date();
+  document.getElementById('clockH').textContent = String(n.getHours()).padStart(2,'0');
+  document.getElementById('clockM').textContent = String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('clockS').textContent = ':'+String(n.getSeconds()).padStart(2,'0');
+}
+
+/* =============================================================
+   ASSET CRUD
+============================================================= */
+function addAsset(){
+  const type   = document.getElementById('fType').value;
+  const symbol = document.getElementById('fSymbol').value.trim().toUpperCase();
+  const label  = document.getElementById('fLabel').value.trim();
+  const qty    = parseFloat(document.getElementById('fQty').value);
+  if(!symbol||!qty||qty<=0){ showMsg('Symbol and quantity required','err'); return; }
+  if(assets.find(a=>a.symbol===symbol&&a.type===type)){ showMsg(`${symbol} already exists — use ✏️ to edit`,'err'); return; }
+  assets.push({type,symbol,label:label||symbol,qty});
+  saveAssetsAll(assets);
+  document.getElementById('fSymbol').value='';
+  document.getElementById('fLabel').value='';
+  document.getElementById('fQty').value='';
+  showMsg(`${symbol} added`,'ok');
+  reconnectWS();
+  startStockPoller();
+  startHypePoller
+  resetHistory();
+  render();
+}
+async function refreshAsset(i){
+  const a = assets[i];
+  if(!a) return;
+  sysMsg(`↻ Refreshing ${a.label||a.symbol}…`);
+  if(a.type === 'Crypto'){
+    // Force reconnect WS or just re-render if price is cached
+    render();
+  } else {
+    delete a._resolvedTicker; // clear cached ticker so it tries all again
+    delete PC[a.symbol.toUpperCase()];
+    await fetchOneStock(a);
+    render();
+    if(PC[a.symbol.toUpperCase()]){
+      sysMsg(`✓ ${a.label||a.symbol} refreshed`);
+    } else {
+      sysMsg(`⚠ ${a.label||a.symbol} still failing — try editing the Yahoo ticker`);
+    }
+  }
+}
+function startEdit(i){ editingIdx=i; render(); }
+function cancelEdit(){ editingIdx=null; render(); }
+function saveEdit(i){
+  const label  = document.getElementById('eLabel')?.value.trim();
+  const qty    = parseFloat(document.getElementById('eQty')?.value);
+  const ticker = document.getElementById('eTicker')?.value.trim();
+  if(qty>0){
+    assets[i].qty   = qty;
+    assets[i].label = label||assets[i].symbol;
+    if(ticker) assets[i]._resolvedTicker = ticker;
+    else delete assets[i]._resolvedTicker;
+    saveAssetsAll(assets);
+  }
+  editingIdx=null; resetHistory(); render();
+  // Re-poll stocks immediately so new ticker is used right away
+  if(assets[i]?.type !== 'Crypto') pollStocks();
+}
+function deleteAsset(i){
+  assets.splice(i,1); saveAssetsAll(assets);
+  if(editingIdx===i) editingIdx=null;
+  reconnectWS(); startStockPoller(); startHypePoller();
+  resetHistory(); render();
+}
+function showMsg(t,type){
+  const el=document.getElementById('formMsg');
+  el.textContent=t; el.className='msg show '+type;
+  setTimeout(()=>el.className='msg',2500);
+}
+
+/* =============================================================
+   STATUS / WS dot helpers
+============================================================= */
+function setWsDot(state,label){
+  document.getElementById('wsDot').className='dot '+state;
+  document.getElementById('wsLabel').textContent=label;
+}
+function sysMsg(msg){
+  document.getElementById('statusMsg').innerHTML=`<span>[SYS]</span> ${msg}`;
+}
+
+/* =============================================================
+   KEYBOARD — Enter to add
+============================================================= */
+['fSymbol','fLabel','fQty'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('keydown',e=>{ if(e.key==='Enter') addAsset(); });
+});
+
+/* =============================================================
+   INIT
+============================================================= */
+requestAnimationFrame(()=>requestAnimationFrame(async ()=>{
+  initCanvas();
+  fetchEur();
+  setInterval(fetchEur, 60000);
+  setInterval(tickClock, 1000);
+  tickClock();
+
+  // First run — no mode chosen yet → show choice modal
+  if(!getSyncMode()){
+    setTimeout(()=>showFirstRun(), 400);
+  } else if(isCloud() && getApiKey() && getBinId()){
+    sysMsg('☁ Syncing from cloud…');
+    const cloudAssets = await cloudLoad();
+    if(cloudAssets && cloudAssets.length){
+      assets = cloudAssets;
+      saveAssets(assets);
+      sysMsg('✓ Assets synced from cloud');
+    }
+  } else if(!isCloud()){
+    sysMsg('🔒 Local mode — data stored on this device');
+  }
+
+  if(assets.length){
+    connectWS();
+    startStockPoller();
+    startHypePoller(); // fetches stocks immediately
+    render();
+  } else {
+    render();
+    setWsDot('warn','No assets yet');
+  }
+}));
+</script>
+
+<div style="text-align:center;padding:2rem 0 1rem;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);opacity:.6;">
+  Made by Ricardo Familiar
+</div>
+</body>
+</html>
